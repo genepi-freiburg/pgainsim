@@ -22,6 +22,8 @@
 #' @export
 p_gain_simulation<-function(AFs,n=100000L,snps_per_trait=1L,n_study=1000L,cores=1L)
 {
+
+
 if (is.null(AFs) || !is.numeric(AFs))
 stop("pgainsim: Error: AFs must be a numeric.")
 
@@ -98,7 +100,7 @@ invisible(pgain_AF)
 }
 
 
-pgain_simulation <- p.gain.simulation(AFs)
+sim_data <- p_gain_simulation(AFs=c(0.1,0.5),n=10000L,snps_per_trait=1L,n_study=1000L,cores=2L)
 
 
 ##2. Funktion p.gain.quantile: Quantile der pgain-Dichte bestimmen für #Tests=1 bis für #Tests=numb_tests
@@ -108,36 +110,66 @@ pgain_simulation <- p.gain.simulation(AFs)
 #numb_tests ist die Anzahl der Tests, bis zu der die zugehörigen Quantile der p-gain-Dichte erechnet werden sollen, z.B. numb_tests=200
 #Output der Funktion p.gain.quantile: Liste, in der für jede Allelfrequenz Quantile der p-gain-Dichte für #tests=1 bis #tests=numb_tests enthalten sind, also Vektor der Länge numb_tests
 
-p.gain.quantile<-function(pgain_simulation,numb_tests)
+
+
+#' Computation of pgain-quantiles for numbers of tests based on the result of function p_gain_simulation.
+#'
+#' @name p_gain_quantile
+#' @param n_tests    Integer. The number of tests for which the pgain-quantile should be computed.
+#' @param sim_data    data frame. Columns describe allele frequency (first column) and corresponding pgain (second column). Output of function p_gain_simulation.
+#' @return invisible null
+#'
+#' @examples
+#' pgain_quantile <- p_gain_quantile(n_tests=50L,sim_data)
+#'
+#' @export
+p_gain_quantile<-function(n_tests, sim_data)
 {
 
-number_tests <- c(1:numb_tests)
+if (is.null(n_tests) || !is.numeric(n_tests))
+stop("pgainsim: Error: n_tests must be an integer.")
+
+if (is.null(sim_data) || !is.data.frame(sim_data) || !ncol(sim_data)==2 || !is.numeric(sim_data[,1]) || !is.numeric(sim_data[,2]))
+stop("pgainsim: Error: sim_data must be a data frame with two columns with numeric values.")
+
+AFs <- unique(sim_data[,1])
+
+
+number_tests <- c(1:n_tests)
 
 alphas <- 0.05/number_tests
 
 
 list_pgain_quantile <- vector("list",length=length(AFs))
 
+
+
 for(i in 1:length(AFs)){
 
 AF <- AFs[i]
 
-res_tmp <- pgain_simulation[[i]]
+res_tmp <- sim_data[sim_data[,1]==AF,]
 
 
 pgain.order_rec<-res_tmp$pgain_rec[order(res_tmp$pgain_rec, decreasing=TRUE)]
 
 
-list_pgain_quantile[[i]] <- pgain.order_rec[floor(length(pgain.order_rec)*alphas)]
-
-}
-
-invisible(list_pgain_quantile)
+list_pgain_quantile[[i]] <- as.data.frame(pgain.order_rec[floor(length(pgain.order_rec)*alphas)])
 
 }
 
 
-pgain_quantile <- p.gain.quantile(pgain_simulation,numb_tests)
+pgain_quantiles <- do.call(cbind,list_pgain_quantile)
+
+
+colnames(pgain_quantiles) <- as.character(AFs)
+
+invisible(pgain_quantiles)
+
+}
+
+
+pgain_quantile <- p_gain_quantile(n_tests,sim_data)
 
 
 
@@ -150,6 +182,13 @@ pgain_quantile <- p.gain.quantile(pgain_simulation,numb_tests)
 #start_a, start_b, start_d sind Zahlen als Startwerte für den log-linearen fit, z.B. start_a <- 1, start_b <- 0.5, start_d <- 1.2
 	#Problem: es wäre geschickt, wenn man für jede Allelfrequenz einzeln die Startwerte für den log-linearen fit wählen könnte, aber dann wird Funktion unübersichtlich
 #Output der Funktion p.gain.quantile.fit: zum einen Liste, die für jede Allelfrequenz den log-linearen Fit der Datenpunkte #tests-Quantil der p-gain-Dichte enthält und zum anderen den Plot von Datenpunkten und Fit für jede Allelfrequenz erstellt
+
+
+
+
+
+
+
 
 p.gain.quantile.fit<-function(pgain_quantile,start_a,start_b,start_d)
 {
