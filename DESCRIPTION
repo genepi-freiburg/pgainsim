@@ -1,0 +1,25 @@
+Package: pgainsim
+Type: Package
+Title: What the Package Does (Title Case)
+Version: 0.1.0
+Maintainer: Pascal Schlosser <pascal.schlosser@uniklinik-freiburg.de>
+Description: More about what it does (maybe more than one line)
+    Use four spaces when indenting paragraphs within the Description.
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+Date: 2020-04-21
+Authors@R: c(person("Pascal", "Schlosser", role = c("aut", "cre"),
+                    email = "pascal.schlosser@uniklinik-freiburg.de"),
+             person("Nora", "Scherer", role = c("aut", "ctb"),
+                    email = "nora.scherer@uniklinik-freiburg.de"))
+Depends:
+  R (>= 3.6.0)
+Imports:
+  parallel,
+Suggests:
+  knitr
+VignetteBuilder: knitr
+URL: https://github.com/genepi-freiburg/pgainsim
+BugReports: https://github.com/genepi-freiburg/pgainsim/issues
+RoxygenNote: 6.1.1
