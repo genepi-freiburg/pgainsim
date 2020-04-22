@@ -189,13 +189,32 @@ pgain_quantile <- p_gain_quantile(n_tests,sim_data)
 
 
 
-
-p.gain.quantile.fit<-function(pgain_quantile,start_a,start_b,start_d)
+#' Computation of log-linear fit of the pgain-quantiles (dependent on the number of tests)
+#'
+#' @name p_gain_quantile_fit
+#' @param pgain_quantile    data frame. Columns describe pgain-quantiles for different allele frequencies (numeric values) and rows discribe number of tests. Output of function p_gain_quantile.
+#' @param start_vec    Numeric vector of starting estimates for the log-linear fit of length 3 (default = c(1,0.5,1.2)).
+#' @return invisible null and plot (wie schreibt man das?)
+#'
+#' @examples
+#' fits <- p_gain_quantile_fit(pgain_quantile,start_vec=c(1,1,1.2))
+#'
+#' @export
+p_gain_quantile_fit<-function(pgain_quantile,start_vec = c(1,0.5,1.2))
 {
+
+if (is.null(pgain_quantile) || !is.data.frame(pgain_quantile) || !sum(!(sapply(pgain_quantile,class))=="numeric")==0)
+stop("pgainsim: Error: pgain_quantile must be a data frame with numeric values in each column.")
+
+if (is.null(start_vec) || !is.numeric(start_vec) || !length(start_vec)==3)
+stop("pgainsim: Error: start_vec must be a numeric vector of length 3.")
+
 
 library(minpack.lm)
 
-number_tests <- c(1:length(pgain_quantile[[1]]))
+AFs <- as.numeric(colnames(pgain_quantile))
+
+number_tests <- c(1:ncol(pgain_quantile))
 
 fits <- vector("list",length=length(AFs))
 
@@ -203,10 +222,10 @@ for(i in 1:length(AFs)){
 
 AF <- AFs[i]
 
-quantile_red <- pgain_quantile[[i]][5:length(number_tests)]
+quantile_red <- pgain_quantile[,i][5:length(number_tests)]
 number_tests_red <- number_tests[5:length(number_tests)]
 
-fits[[i]] <- nlsLM(formula=quantile_red~log(a+b*number_tests_red,base=d),start=list(a=start_a,b=start_b,d=start_d), control=nls.control(maxiter = 1000))
+fits[[i]] <- nlsLM(formula=quantile_red~log(a+b*number_tests_red,base=d),start=list(a=start_vec[1],b=start_vec[2],d=start_vec[3]), control=nls.control(maxiter = 1000))
 pdf(paste0("Plot_#tests_vs_pgain_quantile_",AF,"_log-linear_fit.pdf"))
 plot(number_tests_red,quantile_red, main=paste0("#tests vs pgain-quantile ", AF," log-linear fit"))
 lines(number_tests_red, predict(fits[[i]]), col="red", type="l")
@@ -221,7 +240,7 @@ invisible(fits)
 
 
 
-fits <- p.gain.quantile.fit(pgain_quantile,start_a,start_b,start_d)
+fits <- p.gain.quantile.fit(pgain_quantile,start_vec)
 
 
 
