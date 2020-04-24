@@ -1,10 +1,12 @@
-#####p-gain simulation functions for R-package
-
-##1. Funktion p_gain_simulation: Datensimulation für p-gain-Werte pro Allelfrequenz
-
-#Output der Funktion p_gain_simulation: data frame, der für jede Allelfrequenz (in erster Spalte) pgain_rec-Datenpunkte enthält
+# werden am Ende entfernt(werden wo anders als notwendig angegeben) sind nur noch hier für testzwecke
+library(minpack.lm)
+library(parallel)
 
 #' Random draw of recessive and dominante pgains under no association.
+#'
+#'		## hier kann man einen Beschreibung einfügen, hab jetzt erstmal die Kommentare aus dem Code gesammelt. Könntest du einen zusammenhängenden englsichen Text daraus machen?
+#' wenn wir einen data frame mit allen AF als output haben, haben wir bei sehr großer Anzahl der random draws bzw. vielen SNPs per trait und vielen AF potentiell wieder ein Größen-Problem
+#' Simulation von Genotypen-Wahrscheinlichkeiten eines SNP mit bestimmter AF im HW-Equilibrium
 #'
 #' @name p_gain_simulation
 #' @param AFs    Numeric vector of assumed allele frequencies.
@@ -12,7 +14,7 @@
 #' @param snps_per_trait    Integer. The number of single nucleotide polymorphisms to be simulated per random draw of the trait (default = 1L). snps_per_trait can be increased for efficient simulation. By increasing snps_per_trait you are reducing the number of independent draws of the trait.
 #' @param n_study    Integer. The number of samples per simulation / study size (default = 1000L).
 #' @param cores    Integer. Amount of CPU cores used (<=1 : sequential)
-#' @return invisible null
+#' @return pgain_AF data frame, der für jede Allelfrequenz (in erster Spalte) pgain_rec-Datenpunkte enthält 	### <- Hier return values beschreiben. habe do.call raus genommen dh wir geben eine Liste zurück und die folgenden Funktionen müssen angepasst werden###########
 #'
 #' @examples
 #' sim_data <- p_gain_simulation(AFs=c(0.1,0.5),n=10000L,snps_per_trait=1L,n_study=1000L,cores=2L)
@@ -52,16 +54,11 @@ pgain_AF <- vector("list",length(AFs))
 for(k in 1:length(AFs)){
 
 AF <- AFs[k]
-#pval.l <- list(pval1.l,pval2.l,pval3.l)
-#pval1.l<-pval2.l<-pval3.l<-NULL
-
 pvals <- mclapply(X=1:n_traits,FUN=function(j){
-#traitnkonzentration wird als normalverteilt simuliert
 trait <- rnorm(n_study)
 pval1<-pval2<-pval3<-rep(NA, snps_per_trait)
 for(i in 1:snps_per_trait)
 {
-#Simulation von Genotypen-Wahrscheinlichkeiten eines SNP mit bestimmter AF im HW-Equilibrium
 snpAA <- rbinom(n=n_study,size=1, prob=(1-AF)^2)
 snpAB <- rbinom(n=n_study,size=1,prob=2*AF*(1-AF))
 snpBB <- rbinom(n=n_study,size=1,prob=AF^2)
@@ -93,13 +90,11 @@ pgain_rec<-test2_rec[,1]/test2_rec[,2]
 
 pgain_AF[[k]] <- data.frame(AF=AF,pgain_rec=pgain_rec)
 }
-pgain_AF <- do.call(rbind,pgain_AF)  #######wenn wir einen data frame mit allen AF als output haben, haben wir bei sehr großer Anzahl der random draws bzw. vielen SNPs per trait und vielen AF potentiell wieder ein Größen-Problem
-
+#pgain_AF <- do.call(rbind,pgain_AF)  
 invisible(pgain_AF)
 }
 
 
-sim_data <- p_gain_simulation(AFs=c(0.1,0.5),n=10000L,snps_per_trait=1L,n_study=1000L,cores=2L)
 
 
 ##2. Funktion p.gain.quantile: Quantile der pgain-Dichte bestimmen für #Tests=1 bis für #Tests=numb_tests
@@ -111,6 +106,9 @@ sim_data <- p_gain_simulation(AFs=c(0.1,0.5),n=10000L,snps_per_trait=1L,n_study=
 
 
 
+
+### plural für den Funktionsnamen?
+
 #' Computation of pgain-quantiles for numbers of tests based on the result of function p_gain_simulation.
 #'
 #' @name p_gain_quantile
@@ -119,6 +117,7 @@ sim_data <- p_gain_simulation(AFs=c(0.1,0.5),n=10000L,snps_per_trait=1L,n_study=
 #' @return invisible null
 #'
 #' @examples
+#' sim_data <- p_gain_simulation(AFs=c(0.1,0.5),n=10000L,snps_per_trait=1L,n_study=1000L,cores=2L)   # Beispiele müssen self contained sein
 #' pgain_quantile <- p_gain_quantile(n_tests=50L,sim_data)
 #'
 #' @export
@@ -136,8 +135,8 @@ AFs <- unique(sim_data[,1])
 n_datapoints <- nrow(sim_data[sim_data[,1]==AFs[1],])
 
 
-if (0.05/n_tests*n_datapoints<10)  #####hier weiß ich nicht, welche Zahl als Grenze sinnvoll wäre, damit die Quantile nicht so verzerrt sind nahe bei n_tests
-warning("The number of tests n_tests for which the p-gain quantile should be computed is too large compared to the available number of datapoints. Reduce n_tests.")
+if (0.05/n_tests*n_datapoints<10)  #####hier weiß ich nicht, welche Zahl als Grenze sinnvoll wäre, damit die Quantile nicht so verzerrt sind nahe bei n_tests. 				Ich auch nicht :-) probierst du mal ein bisschen rum? 10, 100, 1000?
+warning(paste0("n_tests (=",ntests,") for which the p-gain quantile should be computed is too large compared to the available number of datapoints. Reduce n_tests."))
 
 number_tests <- c(1:n_tests)
 
@@ -173,9 +172,6 @@ invisible(pgain_quantiles)
 }
 
 
-pgain_quantile <- p_gain_quantile(n_tests,sim_data)
-
-
 
 
 ##3. Funktion p_gain_quantile_fit: Fitten der Datenpunkte #tests-Quantil der p-gain-Dichte mittels log-linearer Funktion und dazugehöriger Plot und Auswertung des fits für bestimmte Anzahl von Tests
@@ -199,7 +195,9 @@ pgain_quantile <- p_gain_quantile(n_tests,sim_data)
 #' @param test_number    Integer. Number of tests for which the p-gain threshold should be determined.
 #' @return invisible null and plot of log-linear fit of the quantiles and approximated quantile for test_number many tests (wie schreibt man das?)
 #'
-#' @examples
+#' @examples			### beim Testen des Beispiels (aktuell mit eingeschobenem sim_data <- do.call(rbind,sim_data)) wirft er mir beim Fitten noch NaN warnings aus.
+#' sim_data <- p_gain_simulation(AFs=c(0.1,0.5),n=10000L,snps_per_trait=1L,n_study=1000L,cores=2L)   # Beispiele müssen self contained sein
+#' pgain_quantile <- p_gain_quantile(n_tests=50L,sim_data)
 #' fits <- p_gain_quantile_fit(pgain_quantile,n_data_ff=nrow(pgain_quantile),start_vec=c(1,1,1.2),test_number=200L)
 #'
 #' @export
@@ -218,7 +216,6 @@ stop("pgainsim: Error: start_vec must be a numeric vector of length 3.")
 if (is.null(test_number) || !is.integer(test_number))
 stop("pgainsim: Error: test_number must be an integer.")
 
-library(minpack.lm)
 
 AFs <- as.numeric(colnames(pgain_quantile))
 
@@ -252,9 +249,3 @@ print(log(coef(fits[[i]])[1] + coef(fits[[i]])[2]*test_number,base=coef(fits[[i]
 invisible(fits)
 
 }
-
-
-
-
-fits <- p_gain_quantile_fit(pgain_quantile,n_data_ff=nrow(pgain_quantile),start_vec=c(1,1,1.2),test_number=200L)
-
