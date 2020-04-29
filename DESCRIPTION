@@ -22,4 +22,4 @@ Suggests:
 VignetteBuilder: knitr
 URL: https://github.com/genepi-freiburg/pgainsim
 BugReports: https://github.com/genepi-freiburg/pgainsim/issues
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.0
