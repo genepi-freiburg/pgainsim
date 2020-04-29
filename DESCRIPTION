@@ -14,7 +14,7 @@ Authors@R: c(person("Pascal", "Schlosser", role = c("aut", "cre"),
              person("Nora", "Scherer", role = c("aut", "ctb"),
                     email = "nora.scherer@uniklinik-freiburg.de"))
 Depends:
-  R (>= 3.6.0)
+  R (>= 3.6.1)
 Imports:
   parallel,minpack.lm
 Suggests:

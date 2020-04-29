@@ -1,7 +1,3 @@
-# werden am Ende entfernt(werden wo anders als notwendig angegeben) sind nur noch hier für testzwecke
-library(minpack.lm)
-library(parallel)
-
 #' Random draw of recessive (and dominant) p-gains under no association.
 #'
 #'		## hier kann man einen Beschreibung einfügen, hab jetzt erstmal die Kommentare aus dem Code gesammelt. Könntest du einen zusammenhängenden englsichen Text daraus machen? -> soll das ausführlicher sein?
@@ -17,7 +13,7 @@ library(parallel)
 #' @param snps_per_trait    Integer. The number of single nucleotide polymorphisms to be simulated per random draw of the trait (default = 1L). snps_per_trait can be increased for efficient simulation. By increasing snps_per_trait you are reducing the number of independent draws of the trait.
 #' @param n_study    Integer. The number of samples per simulation / study size (default = 1000L).
 #' @param cores    Integer. Amount of CPU cores used (<=1 : sequential)
-#' @return pgain_AF data frame. Each column describes simulated p-gain-values for the allele frequency, which is in the column name. 	### <- Hier return values beschreiben. habe do.call raus genommen dh wir geben eine Liste zurück und die folgenden Funktionen müssen angepasst werden########### <- ich habe do.call wieder reingenommen, aber diesmal werden p-gain-values für verschiedenen AF nebeneinander platziert (das finde ich irgendwie anschaulicher als eine Liste, ich kann aber natürlich auch eine Liste als Output machen) -> Größenproblem lag ja an der Länge des data frame
+#' @return pgain_AF data frame. Each column describes simulated p-gain-values for the allele frequency, which is in the column name.
 #'
 #' @examples
 #' sim_data <- p_gain_simulation(AFs=c(0.1,0.5),n=10000L,snps_per_trait=1L,n_study=1000L,cores=2L)
@@ -110,8 +106,6 @@ invisible(pgain_AF)
 
 
 
-### plural für den Funktionsnamen? Ja
-
 #' Computation of p-gain-quantiles for numbers of tests based on the result of function p_gain_simulation.
 #'
 #' @name p_gain_quantiles
@@ -137,11 +131,9 @@ AFs <- as.numeric(colnames(sim_data))
 
 n_datapoints <- nrow(sim_data)
 
-
-if (0.05/n_tests*n_datapoints<10)  #####hier weiß ich nicht, welche Zahl als Grenze sinnvoll wäre, damit die Quantile nicht so verzerrt sind nahe bei n_tests. 				Ich auch nicht :-) probierst du mal ein bisschen rum? 10, 100, 1000? ##das Problem liegt bei der Anzahl der pgain-Datenpunkte: bei unserem kleinen example haben wir ja nur 10k p-gain Datenpunkte: wählen wir als Schranke 10, so können wir n_tests höchstens 50 wählen (dann ist das Quantil für 50 Tests ja schon der 10. größte Eintrag des Vektors, der die p-gain-Werte nach der Größe geordnet enthält)
-#																																																																																											wählen wir als Schranke jedoch 100, so können wir n_tests höchstes 5 wählen und haben somit keine Quantil-Datenpunkte übrig, um einen log-linearen fit zu machen
-#										wenn wir also die Schranke nach oben verlegen wollen, kann man das ganze eben nicht mehr für nur 10k p-gain-Datenpunkte rechnen; gleichzeitig sind die log-linearen fits sehr unterschiedlich für verschiedene Schranken bzw. genauer für verschiedene n_tests, siehe Bsp. unten; für eine größere Schranke bzw. kleinere n_tests sind die log-linearen fits besser
-warning(paste0("n_tests (=",n_tests,") for which the p-gain quantile should be computed is too large compared to the available number of datapoints. Reduce n_tests."))
+if (0.05/n_tests*n_datapoints<100){
+warning(paste0("n_tests (=",n_tests,") for which the p-gain quantile should be computed is relatively large compared to the available number of datapoints which yields instable estimates. Reduce n_tests or increase the number of random draws."))
+}
 
 number_tests <- c(1:n_tests)
 
@@ -196,17 +188,17 @@ invisible(pgain_quant)
 #' @name p_gain_quantile_fit
 #' @param pgain_quantile    data frame. Columns describe pgain-quantiles for different allele frequenciey (numeric values) and rows discribe number of tests. Output of function p_gain_quantiles.
 #' @param n_data_ff    Integer. Number of quantile datapoints that should be used for the fit. n_data_ff is a divider of the number of available datapoints (default = nrow(pgain_quantile)).
-#' @param start_vec    Numeric vector of starting estimates for the log-linear fit of length 3 (default = c(1,0.5,1.02)).
+#' @param start_vec    data frame. Columns describe 3 starting estimates (numeric values) for the log-linear fit for each allele frequency.
 #' @param test_number    Integer. Number of tests for which the p-gain threshold should be determined.
 #' @return fits as a list, plots of log-linear fit of the quantiles for every allele frequency, approximated quantile for test_number many tests for every allele frequency. The list contains the log-linear fits for every allele frequency. 
 #'
 #' @examples			### beim Testen des Beispiels (aktuell mit eingeschobenem sim_data <- do.call(rbind,sim_data)) wirft er mir beim Fitten noch NaN warnings aus. #### diese Warnings hatte ich immer, sobald die Start-Werte des log-linearen fits nicht mehr ganz so gut waren; auch mit warnings konvergiert der Algorithmus (wenn die Start-Werte nicht ganz schlecht sind) und wir erhalten einen fit (der fit ist sehr ähnlich (wenn der Algorithmus konvergiert ist) auch mit warnings wie wenn man erneut nlsLM mit den durch den ersten fit erhaltenen Start-Werten berechnet); Probleme gibt es, wenn die Basis der log sehr nahe bei 1 ist; das waren bisher meine Beobachtungen durch Ausprobieren, beim Googlen habe ich dazu nichts gefunden. Ich denke, man kann die Warnings reduzieren/beseitigen, wenn man für jede Allelfrequenz einzelne Startwerte festlegt, soll ich das so machen? das wird dann wahrscheinlich etwas unübersichtlich
 #' sim_data <- p_gain_simulation(AFs=c(0.1,0.5),n=10000L,snps_per_trait=1L,n_study=1000L,cores=2L)   # Beispiele müssen self contained sein
 #' pgain_quantile <- p_gain_quantiles(n_tests=50L,sim_data)
-#' fits <- p_gain_quantile_fit(pgain_quantile,n_data_ff=nrow(pgain_quantile),start_vec=c(1.09,0.02,1.02),test_number=200L) ##mit diesem start_vec habe ich keine Warnings erhalten
+#' fits <- p_gain_quantile_fit(pgain_quantile,n_data_ff=nrow(pgain_quantile),start_vec=data.frame(c(1.09,0.012,1.014),c(1.12,0.014,1.019)),test_number=200L) ##mit diesem start_vec habe ich keine Warnings erhalten, aber das hängt sehr von sim_data ab
 #'
 #' @export
-p_gain_quantile_fit<-function(pgain_quantile,n_data_ff=nrow(pgain_quantile),start_vec = c(1,0.5,1.02),test_number)
+p_gain_quantile_fit<-function(pgain_quantile,n_data_ff=nrow(pgain_quantile),start_vec=data.frame(matrix(rep(c(1,0.01,1),times=ncol(pgain_quantile)),ncol=ncol(pgain_quantile),dimnames=list(row.names=c("a","b","d"),col.names=colnames(pgain_quantile)))),test_number)
 {
 
 if (is.null(pgain_quantile) || !is.data.frame(pgain_quantile) || !sum(!(sapply(pgain_quantile,class))=="numeric")==0)
@@ -215,8 +207,8 @@ stop("pgainsim: Error: pgain_quantile must be a data frame with numeric values i
 if (is.null(n_data_ff) || !is.integer(n_data_ff) || !nrow(pgain_quantile)%%n_data_ff==0)
 stop("pgainsim: Error: n_data_ff must be an integer and a divider of the number of available datapoints.")
 
-if (is.null(start_vec) || !is.numeric(start_vec) || !length(start_vec)==3)
-stop("pgainsim: Error: start_vec must be a numeric vector of length 3.")
+if (is.null(start_vec) || !is.data.frame(start_vec) || !ncol(start_vec)==ncol(pgain_quantile) || !nrow(start_vec)==3 || !sum(!(sapply(start_vec,class))=="numeric")==0)
+stop("pgainsim: Error: start_vec must be a data frame with the same number of columns as pgain_quantile and with 3 rows and with numeric values.")
 
 if (is.null(test_number) || !is.integer(test_number))
 stop("pgainsim: Error: test_number must be an integer.")
@@ -237,8 +229,7 @@ a <- nrow(pgain_quantile)/n_data_ff
 quantile_red <- pgain_quantile[,i][seq(11,nrow(pgain_quantile),a)]
 number_tests_red <- number_tests[seq(11,nrow(pgain_quantile),a)]
 
-
-fits[[i]] <- nlsLM(formula=quantile_red~log(a+b*number_tests_red,base=d),start=list(a=start_vec[1],b=start_vec[2],d=start_vec[3]), control=nls.control(maxiter = 1000))
+print(fits[[i]] <- nlsLM(formula=quantile_red~log(a+b*number_tests_red,base=d),start=list(a=start_vec[1,i],b=start_vec[2,i],d=start_vec[3,i]), control=nls.control(maxiter = 1000)))
 pdf(paste0("Plot_#tests_vs_pgain_quantile_",AF,"_log-linear_fit.pdf"))
 plot(number_tests_red,quantile_red, main=paste0("#tests vs pgain-quantile ", AF," log-linear fit"))
 lines(number_tests_red, predict(fits[[i]]), col="red", type="l")
@@ -254,106 +245,3 @@ print(log(coef(fits[[i]])[1] + coef(fits[[i]])[2]*test_number,base=coef(fits[[i]
 invisible(fits)
 
 }
-
-
-
-
-
-##example mit 100k Datenpunkten:
-sim_data <- p_gain_simulation(AFs=c(0.1,0.5),n=100000L,snps_per_trait=10L,n_study=1000L,cores=2L)
-
-#für Schranke 10 in p_gain_quantiles erhalten wir:
-pgain_quantile <- p_gain_quantiles(n_tests=500L,sim_data)
-fits <- p_gain_quantile_fit(pgain_quantile,n_data_ff=nrow(pgain_quantile),start_vec=c(1,0.0001,1.02),test_number=1000L)
-[1] "p-gain-threshold for 1000 tests, allele frequency 0.1"
-       a
-135.4598
-[1] "p-gain-threshold for 1000 tests, allele frequency 0.5"
-       a
-303.0567
-> fits[[1]]
-Nonlinear regression model
-  model: quantile_red ~ log(a + b * number_tests_red, base = d)
-   data: parent.frame()
-     a      b      d
-1.0283 0.0315 1.0260
- residual sum-of-squares: 905.8
-
-Number of iterations to convergence: 9
-Achieved convergence tolerance: 1.49e-08
-> fits[[2]]
-Nonlinear regression model
-  model: quantile_red ~ log(a + b * number_tests_red, base = d)
-   data: parent.frame()
-        a         b         d
-1.000e+00 5.296e-07 1.000e+00
- residual sum-of-squares: 14105
-
-Number of iterations to convergence: 82
-Achieved convergence tolerance: 1.49e-08
-
-
-#für Schranke 50 in p_gain_quantiles erhalten wir:
-pgain_quantile <- p_gain_quantiles(n_tests=100L,sim_data)
-fits <- p_gain_quantile_fit(pgain_quantile,n_data_ff=nrow(pgain_quantile),start_vec=c(1,0.0001,1.02),test_number=1000L)
-[1] "p-gain-threshold for 1000 tests, allele frequency 0.1"
-       a
-132.1684
-[1] "p-gain-threshold for 1000 tests, allele frequency 0.5"
-       a
-158.3816
-> fits[[1]]
-Nonlinear regression model
-  model: quantile_red ~ log(a + b * number_tests_red, base = d)
-   data: parent.frame()
-     a      b      d
-1.0854 0.0313 1.0267
- residual sum-of-squares: 40.24
-
-Number of iterations to convergence: 54
-Achieved convergence tolerance: 1.49e-08
-> fits[[2]]
-Nonlinear regression model
-  model: quantile_red ~ log(a + b * number_tests_red, base = d)
-   data: parent.frame()
-      a       b       d
-1.09834 0.01139 1.01607
- residual sum-of-squares: 55.32
-
-Number of iterations to convergence: 44
-Achieved convergence tolerance: 1.49e-08
-
-
-#für Schranke 100 in p_gain_quantiles erhalten wir:
-pgain_quantile <- p_gain_quantiles(n_tests=50L,sim_data)
-fits <- p_gain_quantile_fit(pgain_quantile,n_data_ff=nrow(pgain_quantile),start_vec=c(1,0.0001,1.02),test_number=1000L)
-[1] "p-gain-threshold for 1000 tests, allele frequency 0.1"
-       a
-175.2701
-[1] "p-gain-threshold for 1000 tests, allele frequency 0.5"
-       a
-142.6628
-> fits[[1]]
-Nonlinear regression model
-  model: quantile_red ~ log(a + b * number_tests_red, base = d)
-   data: parent.frame()
-      a       b       d
-1.10505 0.01236 1.01495
- residual sum-of-squares: 1.516
-
-Number of iterations to convergence: 57
-Achieved convergence tolerance: 1.49e-08
-> fits[[2]]
-Nonlinear regression model
-  model: quantile_red ~ log(a + b * number_tests_red, base = d)
-   data: parent.frame()
-      a       b       d
-1.12138 0.01427 1.01935
- residual sum-of-squares: 2.579
-
-Number of iterations to convergence: 55
-Achieved convergence tolerance: 1.49e-08
-
-##--> für verschiedene Schranken in p_gain_quantiles bzw. für verschiedene n_tests erhalten wir sehr unterschiedliche log-lineare fits und die fits für weniger Datenpunkte (also kleineres n_tests und somit mögliche strengere Schranke) sind deutlich besser
-# die Plots dieser fits für unterschiedliche Schranken findest du unter /dsk/ge_netssd/studies/00_GCKD/01_analyses/gwas/multi_biomarker_GWAS/common_chip/18_Metabolon_recessive/pgain_simulation/test_plots/
-# Welche Schranke sollen wir festlegen?
