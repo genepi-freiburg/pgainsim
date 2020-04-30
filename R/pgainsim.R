@@ -187,7 +187,7 @@ invisible(pgain_quant)
 #'
 #' @name p_gain_quantile_fit
 #' @param pgain_quantile    data frame. Columns describe pgain-quantiles for different allele frequenciey (numeric values) and rows discribe number of tests. Output of function p_gain_quantiles.
-#' @param n_data_ff    Integer. Number of quantile datapoints that should be used for the fit. n_data_ff is a divider of the number of available datapoints (default = nrow(pgain_quantile)).
+#' @param n_data_ff    Integer. Number of quantile datapoints that should be used for the plot. n_data_ff is a divider of the number of available datapoints (default = nrow(pgain_quantile)).
 #' @param start_vec    data frame. Columns describe 3 starting estimates (numeric values) for the log-linear fit for each allele frequency.
 #' @param test_number    Integer. Number of tests for which the p-gain threshold should be determined.
 #' @return fits as a list, plots of log-linear fit of the quantiles for every allele frequency, approximated quantile for test_number many tests for every allele frequency. The list contains the log-linear fits for every allele frequency. 
@@ -226,10 +226,12 @@ AF <- AFs[i]
 
 a <- nrow(pgain_quantile)/n_data_ff
 
-quantile_red <- pgain_quantile[,i][seq(11,nrow(pgain_quantile),a)]
-number_tests_red <- number_tests[seq(11,nrow(pgain_quantile),a)]
+quantile_red <- pgain_quantile[,i][seq(1,nrow(pgain_quantile),a)]
+number_tests_red <- number_tests[seq(1,nrow(pgain_quantile),a)]
 
-print(fits[[i]] <- nlsLM(formula=quantile_red~log(a+b*number_tests_red,base=d),start=list(a=start_vec[1,i],b=start_vec[2,i],d=start_vec[3,i]), control=nls.control(maxiter = 1000)))
+print(paste0("Fitted function for p-gain-quantiles of allele frequency ",AF))
+
+print(fits[[i]] <- nlsLM(formula=pgain_quantile[,i]~log(a+b*number_tests,base=d),start=list(a=start_vec[1,i],b=start_vec[2,i],d=start_vec[3,i]), control=nls.control(maxiter = 1000)))
 pdf(paste0("Plot_#tests_vs_pgain_quantile_",AF,"_log-linear_fit.pdf"))
 plot(number_tests_red,quantile_red, main=paste0("#tests vs pgain-quantile ", AF," log-linear fit"))
 lines(number_tests_red, predict(fits[[i]]), col="red", type="l")
