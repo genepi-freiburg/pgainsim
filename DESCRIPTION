@@ -1,14 +1,13 @@
 Package: pgainsim
 Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.1.0
+Title: Simulation for p-gains to detect add/dom/rec modes of inheritance (pgainsim)
+Version: 0.1.1
 Maintainer: Pascal Schlosser <pascal.schlosser@uniklinik-freiburg.de>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Description: Simulation setup for p-gains in between different modes of inheritance under the null hypothesis of no association.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-Date: 2020-04-21
+Date: 2020-05-27
 Authors@R: c(person("Pascal", "Schlosser", role = c("aut", "cre"),
                     email = "pascal.schlosser@uniklinik-freiburg.de"),
              person("Nora", "Scherer", role = c("aut", "ctb"),
