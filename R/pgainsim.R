@@ -97,9 +97,41 @@ rec_dosage <- replace(rec_tmp,rec_tmp==2,1)
 add_dosage <- genotype
 dom_dosage <- replace(genotype, genotype==2,1)
 
+
+if (nrow(summary(lm(trait~dom_dosage))$coefficients)==2){
+
 pval1[i]<-summary(lm(trait~dom_dosage))$coefficients[2,4]
+
+}else{
+
+pval1[i] <- 1
+
+}
+
+
+
+if (nrow(summary(lm(trait~rec_dosage))$coefficients)==2){
+
 pval2[i]<-summary(lm(trait~rec_dosage))$coefficients[2,4]
+
+}else{
+
+pval2[i] <- 1
+
+}
+
+
+if (nrow(summary(lm(trait~add_dosage))$coefficients)==2){
+
 pval3[i]<-summary(lm(trait~add_dosage))$coefficients[2,4]
+
+}else{
+
+pval3[i] <- 1
+
+}
+
+
 }
 
 return(cbind(pval1,pval2,pval3))
@@ -174,9 +206,9 @@ invisible(list_pgains_AF)
 #'
 #' @name p_gain_quantiles
 #' @param pgain_types    Character vector of the types of p-gains, which were simulated in the function p_gain_simulation and from which quantiles should be computed. ("add" means additive p-gain, "rec" means recessive p-gain, "dom" means dominant p-gain) (default = c("add","rec")).
-#' @param n_tests    Integer. The number of tests for which the pgain-quantile should be computed. It depends on the available number of datapoints.
+#' @param n_tests    Integer. The number of tests for which the p-gain-quantile should be computed. It depends on the available number of datapoints.
 #' @param sim_data    list of data frames. For every type of p-gain there is a data frame (in the same order as they are listed in pgain_types). Each column describes simulated p-gain-values for the allele frequency, which is in the column name. Output of function p_gain_simulation.
-#' @return list_pgains_quant list of data frames. For every type of p-gain there is a data frame (in the same order as they are listed in pgain_types). Columns describe pgain-quantiles for different allele frequenciey (numeric values) and rows discribe number of tests.
+#' @return list_pgains_quant list of data frames. For every type of p-gain there is a data frame (in the same order as they are listed in pgain_types). Columns describe p-gain-quantiles for different allele frequenciey (numeric values) and rows discribe number of tests.
 #'
 #' @examples
 #' sim_data <- p_gain_simulation(pgain_types=c("add","rec"), AFs=c(0.1,0.5),n=10000L,snps_per_trait=1L,n_study=1000L,cores=2L)

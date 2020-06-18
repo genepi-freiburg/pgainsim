@@ -9,12 +9,12 @@ p_gain_quantiles(pgain_types = c("add", "rec"), n_tests, sim_data)
 \arguments{
 \item{pgain_types}{Character vector of the types of p-gains, which were simulated in the function p_gain_simulation and from which quantiles should be computed. ("add" means additive p-gain, "rec" means recessive p-gain, "dom" means dominant p-gain) (default = c("add","rec")).}
 
-\item{n_tests}{Integer. The number of tests for which the pgain-quantile should be computed. It depends on the available number of datapoints.}
+\item{n_tests}{Integer. The number of tests for which the p-gain-quantile should be computed. It depends on the available number of datapoints.}
 
 \item{sim_data}{list of data frames. For every type of p-gain there is a data frame (in the same order as they are listed in pgain_types). Each column describes simulated p-gain-values for the allele frequency, which is in the column name. Output of function p_gain_simulation.}
 }
 \value{
-list_pgains_quant list of data frames. For every type of p-gain there is a data frame (in the same order as they are listed in pgain_types). Columns describe pgain-quantiles for different allele frequenciey (numeric values) and rows discribe number of tests.
+list_pgains_quant list of data frames. For every type of p-gain there is a data frame (in the same order as they are listed in pgain_types). Columns describe p-gain-quantiles for different allele frequenciey (numeric values) and rows discribe number of tests.
 }
 \description{
 Computation of p-gain-quantiles for numbers of tests based on the result of function p_gain_simulation.
