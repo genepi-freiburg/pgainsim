@@ -16,7 +16,7 @@
 #' @return list_pgains_AF list of data frames. For every type of p-gain there is a data frame (in the same order as they are listed in pgain_types) . Each column describes simulated p-gain-values for the allele frequency, which is in the column name.
 #'
 #' @examples
-#' sim_data <- p_gain_simulation(pgain_types=c("add","rec"),AFs=c(0.1,0.5),n=10000L,snps_per_trait=1L,n_study=1000L,cores=2L)
+#' sim_data <- p_gain_simulation(pgain_types=c("add","rec"),AFs=c(0.1,0.3,0.5,0.7),n=10000L)
 #'
 #' @export
 p_gain_simulation<-function(pgain_types=c("add","rec"),AFs,n=100000L,snps_per_trait=1L,n_study=1000L,cores=1L)
@@ -160,6 +160,71 @@ invisible(list_pgains_AF)
 }
 
 
+#' Plot density of the p-gain for a specified model for different allele frequencies based on the result of the function p_gain_simulation
+#'
+#' @name p_gain_density_plot
+#' @param pgain_type    Character of the type of p-gain, which was simulated in the function p_gain_simulation and from which the density should be plotted for the different allele frequencies. ("add" means additive p-gain, "rec" means recessive p-gain, "dom" means dominant p-gain)
+#' @param sim_data    list of data frames. For the requested type of p-gain there is a data frame. Each column describes simulated p-gain-values for the allele frequency, which is in the column name. Output of function p_gain_simulation.
+#' @param col    Character vector with names of colours that are used to plot the density of the p-gain for different allele frequencies. col has the same length as AFs.
+#' @return    Plot of densities of the p-gain of type pgain_type for all allele frequencies in AFs. If pgain_type="add" allele frequencies AF and 1-AF are combined.
+#'
+#' @examples
+#' sim_data <- p_gain_simulation(pgain_types=c("add","rec"),AFs=c(0.1,0.3,0.5,0.7),n=10000L)
+#' p_gain_density_plot(pgain_type="rec", sim_data, col=c("darkred","darkorange", "gold","forestgreen"))
+#'
+#' @export
+p_gain_density_plot<-function(pgain_type="rec", sim_data, col=col)
+{
+if (is.null(pgain_type) || !(pgain_type %in% c("add", "rec", "dom")) || !(length(pgain_type)==1) ||!(pgain_type %in% names(sim_data)))
+stop("pgainsim: Error: pgain_type must be a character vector of length 1 and of the type add, rec or dom and the type of the p-gain must be contained in sim_data.")
+
+if (is.null(sim_data) || !is.list(sim_data) || !(pgain_type %in% names(sim_data)))
+stop("pgainsim: Error: sim_data must be a list with a data frame named pgain_type.")
+
+if (is.null(col) || !is.character(col) || !(length(col)==ncol(sim_data[[1]])))
+stop("pgainsim: Error: col must be a character vector with names of colours and with the same length as AFs.")
+
+
+AFs <- as.numeric(colnames(sim_data[[1]]))
+
+index <- which(names(sim_data) == pgain_type)
+
+df_type <- sim_data[[index]]
+
+
+df_type$id <- rownames(df_type)
+
+res_type <- melt(df_type, id.vars="id")
+
+
+
+if (pgain_type=="add"){
+
+for(i in 1:length(AFs)){
+
+AF <- AFs[i]
+
+
+if ((AF < 0.5) & (as.character(1-AF) %in% as.character(AFs))){
+
+res_type[res_type$variable==1-AF,2] <- AF
+
+}
+
+}
+
+}
+
+colnames(res_type)[colnames(res_type)=="variable"] <- "AF"
+density_plot <- ggplot(res_type, aes(x=value, color=AF)) + geom_density()+ scale_color_manual(values =col) + xlim(0,5) + geom_vline(xintercept = 1, col="black", lty=2) + xlab(paste0(pgain_type," p-gain")) + ylab("density") + theme_classic()
+
+
+pdf(paste0("density_plot_pgain_",pgain_type,".pdf"))
+print(density_plot)
+dev.off()
+
+}
+
 
 #' Computation of p-gain-quantiles for numbers of tests based on the result of function p_gain_simulation.
 #'
@@ -170,8 +235,8 @@ invisible(list_pgains_AF)
 #' @return list_pgains_quant list of data frames. For every type of p-gain there is a data frame (in the same order as they are listed in pgain_types). Columns describe p-gain-quantiles for different allele frequenciey (numeric values) and rows discribe number of tests.
 #'
 #' @examples
-#' sim_data <- p_gain_simulation(pgain_types=c("add","rec"), AFs=c(0.1,0.5),n=10000L,snps_per_trait=1L,n_study=1000L,cores=2L)
-#' pgain_quantile <- p_gain_quantiles(pgain_types=c("add","rec"), n_tests=50L,sim_data)
+#' sim_data <- p_gain_simulation(pgain_types=c("add","rec"),AFs=c(0.1,0.3,0.5,0.7),n=10000L)
+#' pgain_quantile <- p_gain_quantiles(pgain_types=c("add","rec"),n_tests=50L,sim_data)
 #'
 #' @export
 p_gain_quantiles<-function(pgain_types=c("add","rec"), n_tests, sim_data)
@@ -208,6 +273,8 @@ list_pgain_quantile_dom <- vector("list",length=length(AFs))
 }
 
 
+index_comb <- rep(0,length(AFs))
+
 for(i in 1:length(AFs)){
 
 AF <- AFs[i]
@@ -215,6 +282,15 @@ AF <- AFs[i]
 if ("add"%in%pgain_types){
 index_add <- grep("add", names(sim_data), fixed=TRUE)
 res_tmp_add <- sim_data[[index_add]][,i]
+
+if (as.character(1-AF) %in% as.character(AFs)){
+
+index_comb[i] <- which(AFs==as.character(1-AF))
+
+res_tmp_add <- c(sim_data[[index_add]][,i],sim_data[[index_add]][,index_comb[i]])
+
+}
+
 
 pgain.order_add<-res_tmp_add[order(res_tmp_add, decreasing=TRUE)]
 
@@ -296,15 +372,16 @@ invisible(list_pgains_quant)
 #' @param n_data_ff    Integer. Number of quantile datapoints that should be used for the plot. n_data_ff is a divider of the number of available datapoints (default = nrow(pgain_quantile[[1]])).
 #' @param start_vec    list of data frames. For every type of p-gain there is a data frame (in the same order as they are listed in pgain_types). Columns describe 3 starting estimates (numeric values) for the log-linear fit for each allele frequency (default is c(1,0.01,1.01) for every p-gain type and for every allele frequency).
 #' @param test_number    Integer. Number of tests for which the p-gain threshold should be determined.
+#' @param col    Character vector with names of colours that are used to plot the quantiles of the p-gain for different allele frequencies. col has the same length as AFs.
 #' @return list_fits as a list, plots of log-linear fit of the quantiles for every allele frequency, approximated quantile for test_number many tests for every allele frequency. The list contains for every p-gain type a list with the log-linear fits for every allele frequency. 
 #'
 #' @examples			
-#' sim_data <- p_gain_simulation(pgain_types=c("add","rec"), AFs=c(0.1,0.5),n=10000L,snps_per_trait=1L,n_study=1000L,cores=2L)   
-#' pgain_quantile <- p_gain_quantiles(pgain_types=c("add","rec"), n_tests=50L,sim_data)
-#' list_fits <- p_gain_quantile_fit(pgain_types=c("add","rec"),pgain_quantile,n_data_ff=nrow(pgain_quantile[[1]]),start_vec=list(data.frame(c(1.09,0.012,1.014),c(1.12,0.014,1.019)),data.frame(c(1.09,0.012,1.014),c(1.12,0.014,1.019))),test_number=200L)
+#' sim_data <- p_gain_simulation(pgain_types=c("add","rec"),AFs=c(0.1,0.3,0.5,0.7),n=10000L)
+#' pgain_quantile <- p_gain_quantiles(pgain_types=c("add","rec"),n_tests=50L,sim_data)
+#' list_fits <- p_gain_quantile_fit(pgain_types=c("add","rec"),pgain_quantile,test_number=200L, col=c("darkred","darkorange", "gold","forestgreen"))
 #'
 #' @export
-p_gain_quantile_fit<-function(pgain_types=c("add","rec"),pgain_quantile,n_data_ff=nrow(pgain_quantile[[1]]),start_vec=lapply(1:length(pgain_types), function(x) data.frame(matrix(rep(c(1,0.01,1.01),times=ncol(pgain_quantile[[1]])),ncol=ncol(pgain_quantile[[1]]),dimnames=list(row.names=c("a","b","d"),col.names=colnames(pgain_quantile[[1]]))))),test_number)
+p_gain_quantile_fit<-function(pgain_types=c("add","rec"),pgain_quantile,n_data_ff=nrow(pgain_quantile[[1]]),start_vec=lapply(1:length(pgain_types), function(x) data.frame(matrix(rep(c(1,0.01,1.01),times=ncol(pgain_quantile[[1]])),ncol=ncol(pgain_quantile[[1]]),dimnames=list(row.names=c("a","b","d"),col.names=colnames(pgain_quantile[[1]]))))),test_number, col=col)
 {
 
 if (is.null(pgain_types) || !is.character(pgain_types) || !all(pgain_types %in% names(pgain_quantile)))
@@ -322,6 +399,10 @@ stop("pgainsim: Error: start_vec must be a list with the same length as pgain_ty
 if (is.null(test_number) || !is.integer(test_number))
 stop("pgainsim: Error: test_number must be an integer.")
 
+if (is.null(col) || !is.character(col) || !(length(col)==ncol(pgain_quantile[[1]])))
+stop("pgainsim: Error: col must be a character vector with names of colours and with the same length as AFs.")
+
+
 
 AFs <- as.numeric(colnames(pgain_quantile[[1]]))
 
@@ -330,44 +411,6 @@ number_tests <- c(1:nrow(pgain_quantile[[1]]))
 
 
 
-if ("add"%in%pgain_types){
-
-fits_add <- vector("list",length=length(AFs))
-
-for(i in 1:length(AFs)){
-
-AF <- AFs[i]
-
-a <- nrow(pgain_quantile[[1]])/n_data_ff
-
-
-index_add <- grep("add", names(pgain_quantile), fixed=TRUE)
-quantile_red_add <- pgain_quantile[[index_add]][,i][seq(1,nrow(pgain_quantile[[index_add]]),a)]
-
-
-
-
-number_tests_red_add <- number_tests[seq(1,nrow(pgain_quantile[[index_add]]),a)]
-
-index2_add <- grep("add", pgain_types, fixed=TRUE)
-
-print(paste0("Fitted function for additive p-gain-quantiles of allele frequency ",AF))
-
-print(fits_add[[i]] <- nlsLM(formula=pgain_quantile[[index_add]][,i]~log(a+b*number_tests,base=d),start=list(a=start_vec[[index2_add]][1,i],b=start_vec[[index2_add]][2,i],d=start_vec[[index2_add]][3,i]), control=nls.control(maxiter = 1000)))
-pdf(paste0("Plot_#tests_vs_add_pgain_quantile_",AF,"_log-linear_fit.pdf"))
-plot(number_tests_red_add,quantile_red_add, main=paste0("#tests vs add pgain-quantile ", AF," log-linear fit"))
-lines(number_tests_red_add, predict(fits_add[[i]]), col="red", type="l")
-dev.off()
-
-print_text_add <- paste0("additive p-gain-threshold for ",test_number," tests, allele frequency ",AF)
-print(print_text_add)
-print(log(coef(fits_add[[i]])[1] + coef(fits_add[[i]])[2]*test_number,base=coef(fits_add[[i]])[3]))
-
-
-}
-
-
-}
 
 
 
@@ -375,6 +418,10 @@ print(log(coef(fits_add[[i]])[1] + coef(fits_add[[i]])[2]*test_number,base=coef(
 if ("rec"%in%pgain_types){
 
 fits_rec <- vector("list",length=length(AFs))
+ylim_rec <- vector("numeric",length=length(AFs))
+quantile_red_rec <- vector("list",length=length(AFs))
+number_tests_red_rec <- vector("list",length=length(AFs))
+
 
 for(i in 1:length(AFs)){
 
@@ -384,30 +431,47 @@ a <- nrow(pgain_quantile[[1]])/n_data_ff
 
 
 index_rec <- grep("rec", names(pgain_quantile), fixed=TRUE)
-quantile_red_rec <- pgain_quantile[[index_rec]][,i][seq(1,nrow(pgain_quantile[[index_rec]]),a)]
+quantile_red_rec[[i]] <- pgain_quantile[[index_rec]][,i][seq(1,nrow(pgain_quantile[[index_rec]]),a)]
 
 
 
 
-number_tests_red_rec <- number_tests[seq(1,nrow(pgain_quantile[[index_rec]]),a)]
+number_tests_red_rec[[i]] <- number_tests[seq(1,nrow(pgain_quantile[[index_rec]]),a)]
 
 index2_rec <- grep("rec", pgain_types, fixed=TRUE)
 
 print(paste0("Fitted function for recessive p-gain-quantiles of allele frequency ",AF))
 
-print(fits_rec[[i]] <- nlsLM(formula=pgain_quantile[[index_rec]][,i]~log(a+b*number_tests,base=d),start=list(a=start_vec[[index2_rec]][1,i],b=start_vec[[index2_rec]][2,i],d=start_vec[[index2_rec]][3,i]), control=nls.control(maxiter = 1000)))
-pdf(paste0("Plot_#tests_vs_rec_pgain_quantile_",AF,"_log-linear_fit.pdf"))
-plot(number_tests_red_rec,quantile_red_rec, main=paste0("#tests vs rec pgain-quantile ", AF," log-linear fit"))
-lines(number_tests_red_rec, predict(fits_rec[[i]]), col="red", type="l")
-dev.off()
+print(fits_rec[[i]] <- nlsLM(formula=pgain_quantile[[index_rec]][,i]~log(a+b*number_tests,base=d),start=list(a=start_vec[[index2_rec]][1,i],b=start_vec[[index2_rec]][2,i],d=start_vec[[index2_rec]][3,i]), control=nls.lm.control(maxiter = 1000,ptol=1e-9)))
+#print(fits_rec[[i]] <- nlsLM(formula=pgain_quantile[[index_rec]][,i]~log(a+b*number_tests,base=d),start=list(a=start_vec[[index2_rec]][1,i],b=start_vec[[index2_rec]][2,i],d=start_vec[[index2_rec]][3,i]), control=nls.control(maxiter = 1000)))
+#pdf(paste0("Plot_#tests_vs_rec_pgain_quantile_",AF,"_log-linear_fit.pdf"))
+#plot(number_tests_red_rec,quantile_red_rec, main=paste0("#tests vs rec pgain-quantile ", AF," log-linear fit"))
+#lines(number_tests_red_rec, predict(fits_rec[[i]]), col="red", type="l")
+#dev.off()
 
 print_text_rec <- paste0("recessive p-gain-threshold for ",test_number," tests, allele frequency ",AF)
 print(print_text_rec)
 print(log(coef(fits_rec[[i]])[1] + coef(fits_rec[[i]])[2]*test_number,base=coef(fits_rec[[i]])[3]))
 
+ylim_rec[i] <- log(coef(fits_rec[[i]])[1] + coef(fits_rec[[i]])[2]*test_number,base=coef(fits_rec[[i]])[3])
+
 
 }
 
+
+p_base_rec <- ggplot(data.frame(x=c(0,test_number)), aes(x)) + ylim(0,max(ylim_rec)) + theme_classic() +  xlab("Number of tests") + ylab("Recessive p-gain-quantile")
+
+
+for(i in 1:length(AFs)){
+p_base_rec <- local({
+i=i
+p_base_rec + geom_point(data=data.frame(number_tests_red_rec[[i]], quantile_red_rec[[i]]), aes(number_tests_red_rec[[i]], quantile_red_rec[[i]], col=as.character(AFs[i]) ), size=1) + stat_function(fun=function(x)log(coef(fits_rec[[i]])[1] + coef(fits_rec[[i]])[2]*x,base=coef(fits_rec[[i]])[3]), geom="line", col=col[i])
+})
+}
+
+pdf("Plot_rec_pgain_quantile_log-linear_fit.pdf")
+print(p_base_rec+scale_colour_manual(name="AF", values = col))
+dev.off()
 
 }
 
@@ -418,6 +482,10 @@ print(log(coef(fits_rec[[i]])[1] + coef(fits_rec[[i]])[2]*test_number,base=coef(
 if ("dom"%in%pgain_types){
 
 fits_dom <- vector("list",length=length(AFs))
+ylim_dom <- vector("numeric",length=length(AFs))
+quantile_red_dom <- vector("list",length=length(AFs))
+number_tests_red_dom <- vector("list",length=length(AFs))
+
 
 for(i in 1:length(AFs)){
 
@@ -427,32 +495,143 @@ a <- nrow(pgain_quantile[[1]])/n_data_ff
 
 
 index_dom <- grep("dom", names(pgain_quantile), fixed=TRUE)
-quantile_red_dom <- pgain_quantile[[index_dom]][,i][seq(1,nrow(pgain_quantile[[index_dom]]),a)]
+quantile_red_dom[[i]] <- pgain_quantile[[index_dom]][,i][seq(1,nrow(pgain_quantile[[index_dom]]),a)]
 
 
 
 
-number_tests_red_dom <- number_tests[seq(1,nrow(pgain_quantile[[index_dom]]),a)]
+number_tests_red_dom[[i]] <- number_tests[seq(1,nrow(pgain_quantile[[index_dom]]),a)]
 
 index2_dom <- grep("dom", pgain_types, fixed=TRUE)
 
 print(paste0("Fitted function for dominant p-gain-quantiles of allele frequency ",AF))
 
-print(fits_dom[[i]] <- nlsLM(formula=pgain_quantile[[index_dom]][,i]~log(a+b*number_tests,base=d),start=list(a=start_vec[[index2_dom]][1,i],b=start_vec[[index2_dom]][2,i],d=start_vec[[index2_dom]][3,i]), control=nls.control(maxiter = 1000)))
-pdf(paste0("Plot_#tests_vs_dom_pgain_quantile_",AF,"_log-linear_fit.pdf"))
-plot(number_tests_red_dom,quantile_red_dom, main=paste0("#tests vs dom pgain-quantile ", AF," log-linear fit"))
-lines(number_tests_red_dom, predict(fits_dom[[i]]), col="red", type="l")
-dev.off()
+print(fits_dom[[i]] <- nlsLM(formula=pgain_quantile[[index_dom]][,i]~log(a+b*number_tests,base=d),start=list(a=start_vec[[index2_dom]][1,i],b=start_vec[[index2_dom]][2,i],d=start_vec[[index2_dom]][3,i]), control=nls.lm.control(maxiter = 1000,ptol=1e-9)))
+#print(fits_dom[[i]] <- nlsLM(formula=pgain_quantile[[index_dom]][,i]~log(a+b*number_tests,base=d),start=list(a=start_vec[[index2_dom]][1,i],b=start_vec[[index2_dom]][2,i],d=start_vec[[index2_dom]][3,i]), control=nls.control(maxiter = 1000)))
+#pdf(paste0("Plot_#tests_vs_dom_pgain_quantile_",AF,"_log-linear_fit.pdf"))
+#plot(number_tests_red_dom,quantile_red_dom, main=paste0("#tests vs dom pgain-quantile ", AF," log-linear fit"))
+#lines(number_tests_red_dom, predict(fits_dom[[i]]), col="red", type="l")
+#dev.off()
 
 print_text_dom <- paste0("dominant p-gain-threshold for ",test_number," tests, allele frequency ",AF)
 print(print_text_dom)
 print(log(coef(fits_dom[[i]])[1] + coef(fits_dom[[i]])[2]*test_number,base=coef(fits_dom[[i]])[3]))
 
+ylim_dom[i] <- log(coef(fits_dom[[i]])[1] + coef(fits_dom[[i]])[2]*test_number,base=coef(fits_dom[[i]])[3])
+
+
+}
+
+p_base_dom <- ggplot(data.frame(x=c(0,test_number)), aes(x)) + ylim(0,max(ylim_dom)) + theme_classic() +  xlab("Number of tests") + ylab("Dominant p-gain-quantile")
+
+for(i in 1:length(AFs)){
+p_base_dom <- local({
+i=i
+p_base_dom + geom_point(data=data.frame(number_tests_red_dom[[i]], quantile_red_dom[[i]]), aes(number_tests_red_dom[[i]], quantile_red_dom[[i]], col=as.character(AFs[i])), size=1) + stat_function(fun=function(x)log(coef(fits_dom[[i]])[1] + coef(fits_dom[[i]])[2]*x,base=coef(fits_dom[[i]])[3]), geom="line", col=col[i])
+})
+}
+
+pdf("Plot_dom_pgain_quantile_log-linear_fit.pdf")
+print(p_base_dom+scale_colour_manual(name="AF", values = col))
+dev.off()
+
+
+
 
 }
 
 
+
+
+if ("add"%in%pgain_types){
+
+index_comb <- rep(0,length(AFs))
+
+for(i in 1:length(AFs)){
+
+AF <- AFs[i]
+
+if ((AF < 0.5) & (as.character(1-AF) %in% as.character(AFs))){
+
+index_comb[i] <- which(AFs==as.character(1-AF))
+
+
 }
+
+}
+
+fits_add <- vector("list",length=length(AFs))
+ylim_add <- vector("numeric",length=length(AFs))
+quantile_red_add <- vector("list",length=length(AFs))
+number_tests_red_add <- vector("list",length=length(AFs))
+
+
+for(i in 1:length(AFs)){
+
+if (!(i %in% index_comb)){
+
+AF <- AFs[i]
+
+a <- nrow(pgain_quantile[[1]])/n_data_ff
+
+
+index_add <- grep("add", names(pgain_quantile), fixed=TRUE)
+
+
+quantile_red_add[[i]] <- pgain_quantile[[index_add]][,i][seq(1,nrow(pgain_quantile[[index_add]]),a)]
+
+
+number_tests_red_add[[i]] <- number_tests[seq(1,nrow(pgain_quantile[[index_add]]),a)]
+
+index2_add <- grep("add", pgain_types, fixed=TRUE)
+
+print(paste0("Fitted function for additive p-gain-quantiles of allele frequency ",AF))
+
+print(fits_add[[i]] <- nlsLM(formula=pgain_quantile[[index_add]][,i]~log(a+b*number_tests,base=d),start=list(a=start_vec[[index2_add]][1,i],b=start_vec[[index2_add]][2,i],d=start_vec[[index2_add]][3,i]), control=nls.lm.control(maxiter = 1000,ptol=1e-9)))
+#print(fits_add[[i]] <- nlsLM(formula=pgain_quantile[[index_add]][,i]~log(a+b*number_tests,base=d),start=list(a=start_vec[[index2_add]][1,i],b=start_vec[[index2_add]][2,i],d=start_vec[[index2_add]][3,i]), control=nls.control(maxiter = 1000)))
+#pdf(paste0("Plot_#tests_vs_add_pgain_quantile_",AF,"_log-linear_fit.pdf"))
+#plot(number_tests_red_add,quantile_red_add, main=paste0("#tests vs add pgain-quantile ", AF," log-linear fit"))
+#lines(number_tests_red_add, predict(fits_add[[i]]), col="red", type="l")
+#dev.off()
+
+print_text_add <- paste0("additive p-gain-threshold for ",test_number," tests, allele frequency ",AF)
+print(print_text_add)
+print(log(coef(fits_add[[i]])[1] + coef(fits_add[[i]])[2]*test_number,base=coef(fits_add[[i]])[3]))
+
+ylim_add[i] <- log(coef(fits_add[[i]])[1] + coef(fits_add[[i]])[2]*test_number,base=coef(fits_add[[i]])[3])
+
+}
+
+}
+
+p_base_add <- ggplot(data.frame(x=c(0,test_number)), aes(x)) + ylim(0,max(ylim_add)) + theme_classic() +  xlab("Number of tests") + ylab("Additive p-gain-quantile")
+
+for(i in 1:length(AFs)){
+if (!(i %in% index_comb)){
+p_base_add <- local({
+i=i
+p_base_add + geom_point(data=data.frame(number_tests_red_add[[i]], quantile_red_add[[i]]), aes(number_tests_red_add[[i]], quantile_red_add[[i]], col=as.character(AFs[i])), size=1) + stat_function(fun=function(x)log(coef(fits_add[[i]])[1] + coef(fits_add[[i]])[2]*x,base=coef(fits_add[[i]])[3]), geom="line", col=col[i])
+})
+}
+}
+pdf("Plot_add_pgain_quantile_log-linear_fit.pdf")
+print(p_base_add+scale_colour_manual(name="AF", values = col))
+dev.off()
+
+
+
+
+
+
+
+
+
+
+}
+
+
+
+
 
 
 
@@ -485,3 +664,8 @@ names(list_fits) <- pgain_types
 invisible(list_fits)
 
 }
+
+
+
+
+
