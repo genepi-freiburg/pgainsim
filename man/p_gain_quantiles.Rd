@@ -20,7 +20,7 @@ list_pgains_quant list of data frames. For every type of p-gain there is a data 
 Computation of p-gain-quantiles for numbers of tests based on the result of function p_gain_simulation.
 }
 \examples{
-sim_data <- p_gain_simulation(pgain_types=c("add","rec"), AFs=c(0.1,0.5),n=10000L,snps_per_trait=1L,n_study=1000L,cores=2L)
-pgain_quantile <- p_gain_quantiles(pgain_types=c("add","rec"), n_tests=50L,sim_data)
+sim_data <- p_gain_simulation(pgain_types=c("add","rec"),AFs=c(0.1,0.3,0.5,0.7),n=10000L)
+pgain_quantile <- p_gain_quantiles(pgain_types=c("add","rec"),n_tests=50L,sim_data)
 
 }

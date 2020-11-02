@@ -4,16 +4,13 @@
 \alias{p_gain_quantile_fit}
 \title{Computation of log-linear fit of the pgain-quantiles (dependent on the number of tests) and evaluation for a determined number of tests}
 \usage{
-p_gain_quantile_fit(
-  pgain_types = c("add", "rec"),
-  pgain_quantile,
+p_gain_quantile_fit(pgain_types = c("add", "rec"), pgain_quantile,
   n_data_ff = nrow(pgain_quantile[[1]]),
-  start_vec = lapply(1:length(pgain_types), function(x) data.frame(matrix(rep(c(1,
-    0.01, 1.01), times = ncol(pgain_quantile[[1]])), ncol = ncol(pgain_quantile[[1]]),
-    dimnames = list(row.names = c("a", "b", "d"), col.names =
-    colnames(pgain_quantile[[1]]))))),
-  test_number
-)
+  start_vec = lapply(1:length(pgain_types), function(x)
+  data.frame(matrix(rep(c(1, 0.01, 1.01), times =
+  ncol(pgain_quantile[[1]])), ncol = ncol(pgain_quantile[[1]]), dimnames =
+  list(row.names = c("a", "b", "d"), col.names =
+  colnames(pgain_quantile[[1]]))))), test_number, col = col)
 }
 \arguments{
 \item{pgain_types}{Character vector of the types of p-gains, of which the quantiles were computed in the function p_gain_quantiles. ("add" means additive p-gain, "rec" means recessive p-gain, "dom" means dominant p-gain) (default = c("add","rec")).}
@@ -25,6 +22,8 @@ p_gain_quantile_fit(
 \item{start_vec}{list of data frames. For every type of p-gain there is a data frame (in the same order as they are listed in pgain_types). Columns describe 3 starting estimates (numeric values) for the log-linear fit for each allele frequency (default is c(1,0.01,1.01) for every p-gain type and for every allele frequency).}
 
 \item{test_number}{Integer. Number of tests for which the p-gain threshold should be determined.}
+
+\item{col}{Character vector with names of colours that are used to plot the quantiles of the p-gain for different allele frequencies. col has the same length as AFs.}
 }
 \value{
 list_fits as a list, plots of log-linear fit of the quantiles for every allele frequency, approximated quantile for test_number many tests for every allele frequency. The list contains for every p-gain type a list with the log-linear fits for every allele frequency.
@@ -34,8 +33,8 @@ Computation of log-linear fit of the pgain-quantiles (dependent on the number of
 }
 \examples{
 		
-sim_data <- p_gain_simulation(pgain_types=c("add","rec"), AFs=c(0.1,0.5),n=10000L,snps_per_trait=1L,n_study=1000L,cores=2L)   
-pgain_quantile <- p_gain_quantiles(pgain_types=c("add","rec"), n_tests=50L,sim_data)
-list_fits <- p_gain_quantile_fit(pgain_types=c("add","rec"),pgain_quantile,n_data_ff=nrow(pgain_quantile[[1]]),start_vec=list(data.frame(c(1.09,0.012,1.014),c(1.12,0.014,1.019)),data.frame(c(1.09,0.012,1.014),c(1.12,0.014,1.019))),test_number=200L)
+sim_data <- p_gain_simulation(pgain_types=c("add","rec"),AFs=c(0.1,0.3,0.5,0.7),n=10000L)
+pgain_quantile <- p_gain_quantiles(pgain_types=c("add","rec"),n_tests=50L,sim_data)
+list_fits <- p_gain_quantile_fit(pgain_types=c("add","rec"),pgain_quantile,test_number=200L, col=c("darkred","darkorange", "gold","forestgreen"))
 
 }
