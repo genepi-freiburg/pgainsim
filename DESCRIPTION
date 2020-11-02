@@ -1,7 +1,7 @@
 Package: pgainsim
 Type: Package
 Title: Simulation for p-gains to detect add/dom/rec modes of inheritance (pgainsim)
-Version: 0.1.2
+Version: 0.9.0
 Maintainer: Pascal Schlosser <pascal.schlosser@uniklinik-freiburg.de>
 Description: Simulation setup for p-gains in between different modes of inheritance under the null hypothesis of no association.
 License: GPL-3
