@@ -15,7 +15,7 @@ Authors@R: c(person("Pascal", "Schlosser", role = c("aut", "cre"),
 Depends:
   R (>= 3.6.1)
 Imports:
-  parallel,minpack.lm
+  parallel,minpack.lm,ggplot2
 Suggests:
   knitr
 VignetteBuilder: knitr

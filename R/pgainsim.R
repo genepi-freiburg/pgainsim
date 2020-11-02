@@ -64,7 +64,7 @@ if ("dom"%in%pgain_types){
 
 for(k in 1:length(AFs)){
     AF <- AFs[k]
-    pvals <- mclapply(X=1:n_traits,FUN=function(j){
+    pvals <- parallel::mclapply(X=1:n_traits,FUN=function(j){
         trait <- rnorm(n_study)
         pval1<-pval2<-pval3<-rep(NA, snps_per_trait)
         for(i in 1:snps_per_trait){
@@ -216,7 +216,7 @@ res_type[res_type$variable==1-AF,2] <- AF
 }
 
 colnames(res_type)[colnames(res_type)=="variable"] <- "AF"
-density_plot <- ggplot(res_type, aes(x=value, color=AF)) + geom_density()+ scale_color_manual(values =col) + xlim(0,5) + geom_vline(xintercept = 1, col="black", lty=2) + xlab(paste0(pgain_type," p-gain")) + ylab("density") + theme_classic()
+density_plot <- ggplot2::ggplot(res_type, aes(x=value, color=AF)) + geom_density()+ scale_color_manual(values =col) + xlim(0,5) + geom_vline(xintercept = 1, col="black", lty=2) + xlab(paste0(pgain_type," p-gain")) + ylab("density") + theme_classic()
 
 
 pdf(paste0("density_plot_pgain_",pgain_type,".pdf"))
@@ -442,7 +442,7 @@ index2_rec <- grep("rec", pgain_types, fixed=TRUE)
 
 print(paste0("Fitted function for recessive p-gain-quantiles of allele frequency ",AF))
 
-print(fits_rec[[i]] <- nlsLM(formula=pgain_quantile[[index_rec]][,i]~log(a+b*number_tests,base=d),start=list(a=start_vec[[index2_rec]][1,i],b=start_vec[[index2_rec]][2,i],d=start_vec[[index2_rec]][3,i]), control=nls.lm.control(maxiter = 1000,ptol=1e-9)))
+print(fits_rec[[i]] <- minpack.lm::nlsLM(formula=pgain_quantile[[index_rec]][,i]~log(a+b*number_tests,base=d),start=list(a=start_vec[[index2_rec]][1,i],b=start_vec[[index2_rec]][2,i],d=start_vec[[index2_rec]][3,i]), control=nls.lm.control(maxiter = 1000,ptol=1e-9)))
 #print(fits_rec[[i]] <- nlsLM(formula=pgain_quantile[[index_rec]][,i]~log(a+b*number_tests,base=d),start=list(a=start_vec[[index2_rec]][1,i],b=start_vec[[index2_rec]][2,i],d=start_vec[[index2_rec]][3,i]), control=nls.control(maxiter = 1000)))
 #pdf(paste0("Plot_#tests_vs_rec_pgain_quantile_",AF,"_log-linear_fit.pdf"))
 #plot(number_tests_red_rec,quantile_red_rec, main=paste0("#tests vs rec pgain-quantile ", AF," log-linear fit"))
@@ -459,7 +459,7 @@ ylim_rec[i] <- log(coef(fits_rec[[i]])[1] + coef(fits_rec[[i]])[2]*test_number,b
 }
 
 
-p_base_rec <- ggplot(data.frame(x=c(0,test_number)), aes(x)) + ylim(0,max(ylim_rec)) + theme_classic() +  xlab("Number of tests") + ylab("Recessive p-gain-quantile")
+p_base_rec <- ggplot2::ggplot(data.frame(x=c(0,test_number)), aes(x)) + ylim(0,max(ylim_rec)) + theme_classic() +  xlab("Number of tests") + ylab("Recessive p-gain-quantile")
 
 
 for(i in 1:length(AFs)){
@@ -522,7 +522,7 @@ ylim_dom[i] <- log(coef(fits_dom[[i]])[1] + coef(fits_dom[[i]])[2]*test_number,b
 
 }
 
-p_base_dom <- ggplot(data.frame(x=c(0,test_number)), aes(x)) + ylim(0,max(ylim_dom)) + theme_classic() +  xlab("Number of tests") + ylab("Dominant p-gain-quantile")
+p_base_dom <- ggplot2::ggplot(data.frame(x=c(0,test_number)), aes(x)) + ylim(0,max(ylim_dom)) + theme_classic() +  xlab("Number of tests") + ylab("Dominant p-gain-quantile")
 
 for(i in 1:length(AFs)){
 p_base_dom <- local({
@@ -587,7 +587,7 @@ index2_add <- grep("add", pgain_types, fixed=TRUE)
 
 print(paste0("Fitted function for additive p-gain-quantiles of allele frequency ",AF))
 
-print(fits_add[[i]] <- nlsLM(formula=pgain_quantile[[index_add]][,i]~log(a+b*number_tests,base=d),start=list(a=start_vec[[index2_add]][1,i],b=start_vec[[index2_add]][2,i],d=start_vec[[index2_add]][3,i]), control=nls.lm.control(maxiter = 1000,ptol=1e-9)))
+print(fits_add[[i]] <- minpack.lm::nlsLM(formula=pgain_quantile[[index_add]][,i]~log(a+b*number_tests,base=d),start=list(a=start_vec[[index2_add]][1,i],b=start_vec[[index2_add]][2,i],d=start_vec[[index2_add]][3,i]), control=nls.lm.control(maxiter = 1000,ptol=1e-9)))
 #print(fits_add[[i]] <- nlsLM(formula=pgain_quantile[[index_add]][,i]~log(a+b*number_tests,base=d),start=list(a=start_vec[[index2_add]][1,i],b=start_vec[[index2_add]][2,i],d=start_vec[[index2_add]][3,i]), control=nls.control(maxiter = 1000)))
 #pdf(paste0("Plot_#tests_vs_add_pgain_quantile_",AF,"_log-linear_fit.pdf"))
 #plot(number_tests_red_add,quantile_red_add, main=paste0("#tests vs add pgain-quantile ", AF," log-linear fit"))
@@ -604,7 +604,7 @@ ylim_add[i] <- log(coef(fits_add[[i]])[1] + coef(fits_add[[i]])[2]*test_number,b
 
 }
 
-p_base_add <- ggplot(data.frame(x=c(0,test_number)), aes(x)) + ylim(0,max(ylim_add)) + theme_classic() +  xlab("Number of tests") + ylab("Additive p-gain-quantile")
+p_base_add <- ggplot2::ggplot(data.frame(x=c(0,test_number)), aes(x)) + ylim(0,max(ylim_add)) + theme_classic() +  xlab("Number of tests") + ylab("Additive p-gain-quantile")
 
 for(i in 1:length(AFs)){
 if (!(i %in% index_comb)){
