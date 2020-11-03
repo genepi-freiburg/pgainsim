@@ -16,7 +16,7 @@
 #' @return list_pgains_AF list of data frames. For every type of p-gain there is a data frame (in the same order as they are listed in pgain_types) . Each column describes simulated p-gain-values for the allele frequency, which is in the column name.
 #'
 #' @examples
-#' sim_data <- p_gain_simulation(pgain_types=c("add","rec"),AFs=c(0.1,0.3,0.5,0.7),n=10000L)
+#' sim_data <- p_gain_simulation(pgain_types=c("add","rec"),AFs=c(0.1,0.3,0.5,0.7),n=100000L)
 #'
 #' @export
 p_gain_simulation<-function(pgain_types=c("add","rec"),AFs,n=100000L,snps_per_trait=1L,n_study=1000L,cores=1L)
@@ -169,7 +169,7 @@ invisible(list_pgains_AF)
 #' @return    Plot of densities of the p-gain of type pgain_type for all allele frequencies in AFs. If pgain_type="add" allele frequencies AF and 1-AF are combined.
 #'
 #' @examples
-#' sim_data <- p_gain_simulation(pgain_types=c("add","rec"),AFs=c(0.1,0.3,0.5,0.7),n=10000L)
+#' sim_data <- p_gain_simulation(pgain_types=c("add","rec"),AFs=c(0.1,0.3,0.5,0.7),n=100000L)
 #' p_gain_density_plot(pgain_type="rec", sim_data, col=c("darkred","darkorange", "gold","forestgreen"))
 #'
 #' @export
@@ -194,7 +194,7 @@ df_type <- sim_data[[index]]
 
 df_type$id <- rownames(df_type)
 
-res_type <- melt(df_type, id.vars="id")
+res_type <- reshape2::melt(df_type, id.vars="id")
 
 
 
@@ -235,7 +235,7 @@ dev.off()
 #' @return list_pgains_quant list of data frames. For every type of p-gain there is a data frame (in the same order as they are listed in pgain_types). Columns describe p-gain-quantiles for different allele frequenciey (numeric values) and rows discribe number of tests.
 #'
 #' @examples
-#' sim_data <- p_gain_simulation(pgain_types=c("add","rec"),AFs=c(0.1,0.3,0.5,0.7),n=10000L)
+#' sim_data <- p_gain_simulation(pgain_types=c("add","rec"),AFs=c(0.1,0.3,0.5,0.7),n=100000L)
 #' pgain_quantile <- p_gain_quantiles(pgain_types=c("add","rec"),n_tests=50L,sim_data)
 #'
 #' @export
@@ -376,7 +376,7 @@ invisible(list_pgains_quant)
 #' @return list_fits as a list, plots of log-linear fit of the quantiles for every allele frequency, approximated quantile for test_number many tests for every allele frequency. The list contains for every p-gain type a list with the log-linear fits for every allele frequency. 
 #'
 #' @examples			
-#' sim_data <- p_gain_simulation(pgain_types=c("add","rec"),AFs=c(0.1,0.3,0.5,0.7),n=10000L)
+#' sim_data <- p_gain_simulation(pgain_types=c("add","rec"),AFs=c(0.1,0.3,0.5,0.7),n=100000L)
 #' pgain_quantile <- p_gain_quantiles(pgain_types=c("add","rec"),n_tests=50L,sim_data)
 #' list_fits <- p_gain_quantile_fit(pgain_types=c("add","rec"),pgain_quantile,test_number=200L, col=c("darkred","darkorange", "gold","forestgreen"))
 #'
@@ -506,7 +506,7 @@ index2_dom <- grep("dom", pgain_types, fixed=TRUE)
 
 print(paste0("Fitted function for dominant p-gain-quantiles of allele frequency ",AF))
 
-print(fits_dom[[i]] <- nlsLM(formula=pgain_quantile[[index_dom]][,i]~log(a+b*number_tests,base=d),start=list(a=start_vec[[index2_dom]][1,i],b=start_vec[[index2_dom]][2,i],d=start_vec[[index2_dom]][3,i]), control=nls.lm.control(maxiter = 1000,ptol=1e-9)))
+print(fits_dom[[i]] <- minpack.lm::nlsLM(formula=pgain_quantile[[index_dom]][,i]~log(a+b*number_tests,base=d),start=list(a=start_vec[[index2_dom]][1,i],b=start_vec[[index2_dom]][2,i],d=start_vec[[index2_dom]][3,i]), control=nls.lm.control(maxiter = 1000,ptol=1e-9)))
 #print(fits_dom[[i]] <- nlsLM(formula=pgain_quantile[[index_dom]][,i]~log(a+b*number_tests,base=d),start=list(a=start_vec[[index2_dom]][1,i],b=start_vec[[index2_dom]][2,i],d=start_vec[[index2_dom]][3,i]), control=nls.control(maxiter = 1000)))
 #pdf(paste0("Plot_#tests_vs_dom_pgain_quantile_",AF,"_log-linear_fit.pdf"))
 #plot(number_tests_red_dom,quantile_red_dom, main=paste0("#tests vs dom pgain-quantile ", AF," log-linear fit"))

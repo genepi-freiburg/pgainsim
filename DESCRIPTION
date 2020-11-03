@@ -11,11 +11,11 @@ Date: 2020-06-18
 Authors@R: c(person("Pascal", "Schlosser", role = c("aut", "cre"),
                     email = "pascal.schlosser@uniklinik-freiburg.de"),
              person("Nora", "Scherer", role = c("aut", "ctb"),
-                    email = "nora.scherer@uniklinik-freiburg.de"))
+                    email = "nora.isabella.scherer@uniklinik-freiburg.de"))
 Depends:
   R (>= 3.6.1)
 Imports:
-  parallel,minpack.lm,ggplot2
+  parallel,minpack.lm,ggplot2,reshape2
 Suggests:
   knitr
 VignetteBuilder: knitr
