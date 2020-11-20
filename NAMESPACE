@@ -1,1 +1,5 @@
 exportPattern("^[[:alpha:]]+")
+import(parallel)
+import(minpack.lm)
+import(ggplot2)
+import(reshape2)

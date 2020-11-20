@@ -4,12 +4,14 @@
 \alias{p_gain_density_plot}
 \title{Plot density of the p-gain for a specified model for different allele frequencies based on the result of the function p_gain_simulation}
 \usage{
-p_gain_density_plot(pgain_type = "rec", sim_data, col = col)
+p_gain_density_plot(pgain_type = "rec", sim_data, xlim = xlim, col = col)
 }
 \arguments{
 \item{pgain_type}{Character of the type of p-gain, which was simulated in the function p_gain_simulation and from which the density should be plotted for the different allele frequencies. ("add" means additive p-gain, "rec" means recessive p-gain, "dom" means dominant p-gain)}
 
 \item{sim_data}{list of data frames. For the requested type of p-gain there is a data frame. Each column describes simulated p-gain-values for the allele frequency, which is in the column name. Output of function p_gain_simulation.}
+
+\item{xlim}{numeric vector with two values specifying the left and the right limit of the x axis. You can leave one value as NA if you want to compute the corresponding limit from the range of the data.}
 
 \item{col}{Character vector with names of colours that are used to plot the density of the p-gain for different allele frequencies. col has the same length as AFs.}
 }
@@ -20,7 +22,7 @@ Plot of densities of the p-gain of type pgain_type for all allele frequencies in
 Plot density of the p-gain for a specified model for different allele frequencies based on the result of the function p_gain_simulation
 }
 \examples{
-sim_data <- p_gain_simulation(pgain_types=c("add","rec"),AFs=c(0.1,0.3,0.5,0.7),n=10000L)
-p_gain_density_plot(pgain_type="rec", sim_data, col=c("darkred","darkorange", "gold","forestgreen"))
+sim_dat <- p_gain_simulation(pgain_types=c("add","rec"),AFs=c(0.3,0.7),n=10000L, cores=4L)
+p_gain_density_plot(pgain_type="rec", sim_data=sim_dat, xlim=c(0,5), col=c("darkred", "gold"))
 
 }
