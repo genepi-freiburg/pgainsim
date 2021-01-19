@@ -1,0 +1,14 @@
+citEntry(entry="article",
+         title = "pgainsim: An {R}-package to assess the mode of inheritance for quantitative trait loci in {GWAS}",
+         author = personList( as.person("Nora Scherer"),
+                              as.person("Peggy Sekula"),
+                              as.person("Peter Pfaffelhuber"),
+                              as.person("Pascal Schlosser")),
+         year = 2021,
+         month = "n.a.",
+         journal = "in revision",
+         doi = "n.a.",
+         textVersion = 
+         paste("Nora Scherer, Peggy Sekula, Peter Pfaffelhuber, and Pascal Schlosser.", 
+               "pgainsim: An R-package to assess the mode of inheritance for quantitative trait loci in GWAS.",
+               "in revision."))

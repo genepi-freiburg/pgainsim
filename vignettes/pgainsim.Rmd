@@ -1,0 +1,85 @@
+---
+title: "The pgainsim users guide"
+author: "Pascal Schlosser, Nora Scherer"
+package: "pgainsim v1.1"
+output: 
+  rmarkdown::html_document:
+    md_extensions: "-autolink_bare_uris"
+vignette: >
+  %\VignetteIndexEntry{The pgainsim users guide}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}  
+---
+
+```{r setup, cache = F, echo = FALSE}
+knitr::opts_chunk$set(error = TRUE)
+```
+
+# Introduction
+
+The pgainsim package allows after performing genome-wide association studies
+under an additive, recessive and dominant model for a quantitative trait
+to determine study specific critical values when one of the three models
+is more informative than the other ones for a quantitative trait locus.
+First, study specific p-gain values are simulated. Second, based on the
+simulated values quantiles of the empirical density of the p-gain are computed.
+Finally, the quantiles are exported or interpolated and the critical values are obtained.
+
+# Installation
+
+To install this package from the github page of the Institute of Genetic Epidemiology - University of Freiburg, start R (version "4.0") and enter:
+
+```{r install_package}
+devtools::install_github("genepi-freiburg/pgainsim")
+```
+
+# Example Code
+
+The function `p_gain_simulation()` provides a dataset of simulated p-gains of different modes
+using `pgain_types` (rec, dom, add), `AFs` (vector with different allele frequencies),
+`n_study` (study size), `n` (number of random draws) as input while parallizing across `cores` (number of CPU cores):
+
+```{r simulation}
+library(pgainsim)
+sim_dat <- p_gain_simulation(pgain_types=c("add","rec"),AFs=c(0.3,0.7),n=10000L, cores=4L)
+```
+
+Because the distribution of the additive p-gain is the same for the allele frequencies
+AF and 1-AF in the following functions the simulations for these two allele frequencies
+are combined for the additive p-gain.
+
+Based on the simulated data, the empirical density of one p-gain type for different
+allele frequencies can be plotted by the function `p_gain_density_plot()` where
+`xlim` describes the range of the x-axis:
+
+```{r density_plot}
+p_gain_density_plot(pgain_type="rec", sim_data=sim_dat, xlim=c(0,5))
+```
+
+Based on the simulated data, the (1-0.05/#tests)-quantiles of the empirical density of the p-gain are
+computed by the function `p_gain_quantiles()` where #tests is the number of parallel tests and
+`n_tests` describes the maximal number of parallel tests:
+
+```{r quantiles}
+quantile <- p_gain_quantiles(n_tests=5L,sim_data=sim_dat)
+```
+
+For applications with extensive multiple testing the p-gain-quantiles can be interpolated
+by a log-linear fit by use of the function `p_gain_quantile_fit()` where `test_number` describes
+the number of parallel tests for which the p-gain threshold should be determined:
+
+```{r quantiles_fit}
+list_fits <- p_gain_quantile_fit(pgain_quantile=quantile,test_number=50L)
+```
+
+By means of `start_vec` the starting estimates for the log-linear-fit for different p-gain types
+and allele frequencies can be changed.
+
+For details on the options of all functions please see `?pgainsim` and the corresponding
+application note by Scherer et al. 2021 (under review).
+
+# Session Info
+```{r sessionInfo}
+sessionInfo()
+warnings()
+```

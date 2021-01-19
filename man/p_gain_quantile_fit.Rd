@@ -13,7 +13,9 @@ p_gain_quantile_fit(
     dimnames = list(row.names = c("a", "b", "d"), col.names =
     colnames(pgain_quantile[[1]]))))),
   test_number,
-  col = col
+  col = hcl(h = seq(15, 375, length = ncol(pgain_quantile[[1]]) + 1), l = 65, c =
+    100)[1:ncol(pgain_quantile[[1]])],
+  print_pdf = TRUE
 )
 }
 \arguments{
@@ -27,7 +29,9 @@ p_gain_quantile_fit(
 
 \item{test_number}{Integer. Number of tests for which the p-gain threshold should be determined.}
 
-\item{col}{Character vector with names of colours that are used to plot the quantiles of the p-gain for different allele frequencies. col has the same length as AFs.}
+\item{col}{Character vector with names of colours that are used to plot the quantiles of the p-gain for different allele frequencies. col has the same length as AFs. The default are the default colours of ggplot.}
+
+\item{print_pdf}{logical value indicating whether the quantiles are plotted as PDF-file or within the R-session. Default is TRUE.}
 }
 \value{
 list_fits as a list, plots of log-linear fit of the quantiles for every allele frequency, approximated quantile for test_number many tests for every allele frequency. The list contains for every p-gain type a list with the log-linear fits for every allele frequency. For the additive case allele frequencies AF and 1-AF are combined.
@@ -39,6 +43,6 @@ Computation of log-linear fit of the pgain-quantiles (dependent on the number of
 		
 sim_dat <- p_gain_simulation(pgain_types=c("add","rec"),AFs=c(0.3,0.7),n=10000L, cores=4L)
 quantile <- p_gain_quantiles(n_tests=5L,sim_data=sim_dat)
-list_fits <- p_gain_quantile_fit(pgain_quantile=quantile,test_number=50L, col=c("darkred", "gold"))
+list_fits <- p_gain_quantile_fit(pgain_quantile=quantile,test_number=50L)
 
 }

@@ -4,16 +4,25 @@
 \alias{p_gain_density_plot}
 \title{Plot density of the p-gain for a specified model for different allele frequencies based on the result of the function p_gain_simulation}
 \usage{
-p_gain_density_plot(pgain_type = "rec", sim_data, xlim = xlim, col = col)
+p_gain_density_plot(
+  pgain_type = "rec",
+  sim_data,
+  xlim = c(0, NA),
+  col = hcl(h = seq(15, 375, length = ncol(sim_data[[1]]) + 1), l = 65, c =
+    100)[1:ncol(sim_data[[1]])],
+  print_pdf = TRUE
+)
 }
 \arguments{
 \item{pgain_type}{Character of the type of p-gain, which was simulated in the function p_gain_simulation and from which the density should be plotted for the different allele frequencies. ("add" means additive p-gain, "rec" means recessive p-gain, "dom" means dominant p-gain)}
 
 \item{sim_data}{list of data frames. For the requested type of p-gain there is a data frame. Each column describes simulated p-gain-values for the allele frequency, which is in the column name. Output of function p_gain_simulation.}
 
-\item{xlim}{numeric vector with two values specifying the left and the right limit of the x axis. You can leave one value as NA if you want to compute the corresponding limit from the range of the data.}
+\item{xlim}{numeric vector with two values specifying the left and the right limit of the x-axis. The default depends on the range of the data, but for getting a better view of the p-gain density a lower value of th right limit of the x-axis is recommended.}
 
-\item{col}{Character vector with names of colours that are used to plot the density of the p-gain for different allele frequencies. col has the same length as AFs.}
+\item{col}{Character vector with names of colours that are used to plot the density of the p-gain for different allele frequencies. col has the same length as AFs. The default are the default colours of ggplot.}
+
+\item{print_pdf}{logical value indicating whether the density is plotted as PDF-file or within the R-session. Default is TRUE.}
 }
 \value{
 Plot of densities of the p-gain of type pgain_type for all allele frequencies in AFs. If pgain_type="add" allele frequencies AF and 1-AF are combined.
@@ -23,6 +32,6 @@ Plot density of the p-gain for a specified model for different allele frequencie
 }
 \examples{
 sim_dat <- p_gain_simulation(pgain_types=c("add","rec"),AFs=c(0.3,0.7),n=10000L, cores=4L)
-p_gain_density_plot(pgain_type="rec", sim_data=sim_dat, xlim=c(0,5), col=c("darkred", "gold"))
+p_gain_density_plot(pgain_type="rec", sim_data=sim_dat, xlim=c(0,5))
 
 }

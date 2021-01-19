@@ -14,7 +14,7 @@ p_gain_quantiles(sim_data, pgain_types = names(sim_data), n_tests)
 \item{n_tests}{Integer. The number of tests for which the p-gain-quantile should be computed. It depends on the available number of datapoints.}
 }
 \value{
-list_pgains_quant list of data frames. For every type of p-gain there is a data frame (in the same order as they are listed in pgain_types). Columns describe p-gain-quantiles for different allele frequenciey (numeric values) and rows discribe number of tests.
+list_pgains_quant list of data frames. For every type of p-gain there is a data frame (in the same order as they are listed in pgain_types). Columns describe p-gain-quantiles for different allele frequenciey (numeric values) and rows discribe number of tests. For the additive case simulated p-gain values of allele frequencies AF and 1-AF are combined before computing the quantiles.
 }
 \description{
 Computation of p-gain-quantiles for numbers of tests based on the result of function p_gain_simulation.
