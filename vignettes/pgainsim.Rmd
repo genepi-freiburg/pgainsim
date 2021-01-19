@@ -1,6 +1,6 @@
 ---
 title: "The pgainsim users guide"
-author: "Pascal Schlosser, Nora Scherer"
+author: "Nora Scherer, Pascal Schlosser"
 package: "pgainsim v1.1"
 output: 
   rmarkdown::html_document:
