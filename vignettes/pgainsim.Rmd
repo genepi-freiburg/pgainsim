@@ -30,7 +30,10 @@ Finally, the quantiles are exported or interpolated and the critical values are 
 To install this package from the github page of the Institute of Genetic Epidemiology - University of Freiburg, start R (version "4.0") and enter:
 
 ```{r install_package}
-devtools::install_github("genepi-freiburg/pgainsim")
+if (!requireNamespace("devtools", quietly = TRUE))
+   install.packages("devtools")
+if (!requireNamespace("pgainsim", quietly = TRUE))
+  devtools::install_github("genepi-freiburg/pgainsim")
 ```
 
 # Example Code
@@ -40,8 +43,8 @@ using `pgain_types` (rec, dom, add), `AFs` (vector with different allele frequen
 `n_study` (study size), `n` (number of random draws) as input while parallizing across `cores` (number of CPU cores):
 
 ```{r simulation}
-library(pgainsim)
-sim_dat <- p_gain_simulation(pgain_types=c("add","rec"),AFs=c(0.3,0.7),n=10000L, cores=4L)
+require(pgainsim)
+sim_dat <- p_gain_simulation(pgain_types=c("add","rec"), AFs=c(0.3,0.7), n=10000L, cores=4L)
 ```
 
 Because the distribution of the additive p-gain is the same for the allele frequencies
@@ -53,7 +56,7 @@ allele frequencies can be plotted by the function `p_gain_density_plot()` where
 `xlim` describes the range of the x-axis:
 
 ```{r density_plot}
-p_gain_density_plot(pgain_type="rec", sim_data=sim_dat, xlim=c(0,5))
+p_gain_density_plot(pgain_type="rec", sim_data=sim_dat, xlim=c(0,5), print_pdf=FALSE)
 ```
 
 Based on the simulated data, the (1-0.05/#tests)-quantiles of the empirical density of the p-gain are
@@ -61,7 +64,7 @@ computed by the function `p_gain_quantiles()` where #tests is the number of para
 `n_tests` describes the maximal number of parallel tests:
 
 ```{r quantiles}
-quantile <- p_gain_quantiles(n_tests=5L,sim_data=sim_dat)
+quantile <- p_gain_quantiles(n_tests=5L, sim_data=sim_dat)
 ```
 
 For applications with extensive multiple testing the p-gain-quantiles can be interpolated
@@ -69,7 +72,7 @@ by a log-linear fit by use of the function `p_gain_quantile_fit()` where `test_n
 the number of parallel tests for which the p-gain threshold should be determined:
 
 ```{r quantiles_fit}
-list_fits <- p_gain_quantile_fit(pgain_quantile=quantile,test_number=50L)
+list_fits <- p_gain_quantile_fit(pgain_quantile=quantile, test_number=50L, print_pdf=FALSE)
 ```
 
 By means of `start_vec` the starting estimates for the log-linear-fit for different p-gain types
