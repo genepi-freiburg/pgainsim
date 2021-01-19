@@ -157,16 +157,17 @@ invisible(list_pgains_AF)
 #' @name p_gain_density_plot
 #' @param pgain_type    Character of the type of p-gain, which was simulated in the function p_gain_simulation and from which the density should be plotted for the different allele frequencies. ("add" means additive p-gain, "rec" means recessive p-gain, "dom" means dominant p-gain)
 #' @param sim_data    list of data frames. For the requested type of p-gain there is a data frame. Each column describes simulated p-gain-values for the allele frequency, which is in the column name. Output of function p_gain_simulation.
-#' @param xlim    numeric vector with two values specifying the left and the right limit of the x axis. You can leave one value as NA if you want to compute the corresponding limit from the range of the data.
-#' @param col    Character vector with names of colours that are used to plot the density of the p-gain for different allele frequencies. col has the same length as AFs.
+#' @param xlim    numeric vector with two values specifying the left and the right limit of the x-axis. The default depends on the range of the data, but for getting a better view of the p-gain density a lower value of th right limit of the x-axis is recommended.
+#' @param col    Character vector with names of colours that are used to plot the density of the p-gain for different allele frequencies. col has the same length as AFs. The default are the default colours of ggplot.
+#' @param print_pdf    logical value indicating whether the density is plotted as PDF-file or within the R-session. Default is TRUE.
 #' @return    Plot of densities of the p-gain of type pgain_type for all allele frequencies in AFs. If pgain_type="add" allele frequencies AF and 1-AF are combined.
 #'
 #' @examples
 #' sim_dat <- p_gain_simulation(pgain_types=c("add","rec"),AFs=c(0.3,0.7),n=10000L, cores=4L)
-#' p_gain_density_plot(pgain_type="rec", sim_data=sim_dat, xlim=c(0,5), col=c("darkred", "gold"))
+#' p_gain_density_plot(pgain_type="rec", sim_data=sim_dat, xlim=c(0,5))
 #'
 #' @export
-p_gain_density_plot<-function(pgain_type="rec", sim_data, xlim=xlim, col=col)
+p_gain_density_plot<-function(pgain_type="rec", sim_data, xlim=c(0,NA), col=hcl(h=seq(15, 375, length = ncol(sim_data[[1]])+1), l=65,c=100)[1:ncol(sim_data[[1]])], print_pdf=TRUE)
 {
 if (is.null(pgain_type) || !(pgain_type %in% c("add", "rec", "dom")) || !(length(pgain_type)==1) ||!(pgain_type %in% names(sim_data)))
 stop("pgainsim: Error: pgain_type must be a character vector of length 1 and of the type add, rec or dom and the type of the p-gain must be contained in sim_data.")
@@ -180,6 +181,9 @@ stop("pgainsim: Error: xlim must be a numeric vector of length 2.")
 if (is.null(col) || !is.character(col) || !(length(col)==ncol(sim_data[[1]])))
 stop("pgainsim: Error: col must be a character vector with names of colours and with the same length as AFs.")
 
+if (is.na(xlim[2])){
+warning("xlim is not specified. Consider to set xlim manually with a lower value for the right limit for the x-axis.")
+}
 
 AFs <- as.numeric(colnames(sim_data[[1]]))
 
@@ -214,10 +218,13 @@ res_type[res_type$variable==1-AF,2] <- AF
 colnames(res_type)[colnames(res_type)=="variable"] <- "AF"
 density_plot <- ggplot2::ggplot(res_type, aes(x=value, color=AF)) + geom_density()+ scale_color_manual(values =col) + xlim(xlim[1],xlim[2]) + geom_vline(xintercept = 1, col="black", lty=2) + xlab(paste0(pgain_type," p-gain")) + ylab("density") + theme_classic()
 
-
+if(print_pdf==TRUE){
 pdf(paste0("density_plot_pgain_",pgain_type,".pdf"))
 print(density_plot)
 dev.off()
+}else{
+print(density_plot)
+}
 
 }
 
@@ -228,7 +235,7 @@ dev.off()
 #' @param pgain_types    Character vector of the types of p-gains, which were simulated in the function p_gain_simulation and from which quantiles should be computed. ("add" means additive p-gain, "rec" means recessive p-gain, "dom" means dominant p-gain) (default = names(sim_data)).
 #' @param n_tests    Integer. The number of tests for which the p-gain-quantile should be computed. It depends on the available number of datapoints.
 #' @param sim_data    list of data frames. For every type of p-gain there is a data frame (in the same order as they are listed in pgain_types). Each column describes simulated p-gain-values for the allele frequency, which is in the column name. Output of function p_gain_simulation.
-#' @return list_pgains_quant list of data frames. For every type of p-gain there is a data frame (in the same order as they are listed in pgain_types). Columns describe p-gain-quantiles for different allele frequenciey (numeric values) and rows discribe number of tests.
+#' @return list_pgains_quant list of data frames. For every type of p-gain there is a data frame (in the same order as they are listed in pgain_types). Columns describe p-gain-quantiles for different allele frequenciey (numeric values) and rows discribe number of tests. For the additive case simulated p-gain values of allele frequencies AF and 1-AF are combined before computing the quantiles.
 #'
 #' @examples
 #' sim_dat <- p_gain_simulation(pgain_types=c("add","rec"),AFs=c(0.3,0.7),n=10000L, cores=4L)
@@ -368,16 +375,17 @@ invisible(list_pgains_quant)
 #' @param n_data_ff    Integer. Number of quantile datapoints that should be used for the plot. n_data_ff is a divider of the number of available datapoints (default = nrow(pgain_quantile[[1]])).
 #' @param start_vec    list of data frames. For every type of p-gain there is a data frame (in the same order as they are listed in pgain_types). Columns describe 3 starting estimates (numeric values) for the log-linear fit for each allele frequency (default is c(1,0.01,1.01) for every p-gain type and for every allele frequency).
 #' @param test_number    Integer. Number of tests for which the p-gain threshold should be determined.
-#' @param col    Character vector with names of colours that are used to plot the quantiles of the p-gain for different allele frequencies. col has the same length as AFs.
+#' @param col    Character vector with names of colours that are used to plot the quantiles of the p-gain for different allele frequencies. col has the same length as AFs. The default are the default colours of ggplot.
+#' @param print_pdf    logical value indicating whether the quantiles are plotted as PDF-file or within the R-session. Default is TRUE.
 #' @return list_fits as a list, plots of log-linear fit of the quantiles for every allele frequency, approximated quantile for test_number many tests for every allele frequency. The list contains for every p-gain type a list with the log-linear fits for every allele frequency. For the additive case allele frequencies AF and 1-AF are combined.
 #'
 #' @examples			
 #' sim_dat <- p_gain_simulation(pgain_types=c("add","rec"),AFs=c(0.3,0.7),n=10000L, cores=4L)
 #' quantile <- p_gain_quantiles(n_tests=5L,sim_data=sim_dat)
-#' list_fits <- p_gain_quantile_fit(pgain_quantile=quantile,test_number=50L, col=c("darkred", "gold"))
+#' list_fits <- p_gain_quantile_fit(pgain_quantile=quantile,test_number=50L)
 #'
 #' @export
-p_gain_quantile_fit<-function(pgain_quantile, pgain_types=names(pgain_quantile),n_data_ff=nrow(pgain_quantile[[1]]),start_vec=lapply(1:length(pgain_types), function(x) data.frame(matrix(rep(c(1,0.01,1.01),times=ncol(pgain_quantile[[1]])),ncol=ncol(pgain_quantile[[1]]),dimnames=list(row.names=c("a","b","d"),col.names=colnames(pgain_quantile[[1]]))))),test_number, col=col)
+p_gain_quantile_fit<-function(pgain_quantile, pgain_types=names(pgain_quantile),n_data_ff=nrow(pgain_quantile[[1]]),start_vec=lapply(1:length(pgain_types), function(x) data.frame(matrix(rep(c(1,0.01,1.01),times=ncol(pgain_quantile[[1]])),ncol=ncol(pgain_quantile[[1]]),dimnames=list(row.names=c("a","b","d"),col.names=colnames(pgain_quantile[[1]]))))),test_number, col=hcl(h=seq(15, 375, length = ncol(pgain_quantile[[1]])+1), l=65,c=100)[1:ncol(pgain_quantile[[1]])], print_pdf=TRUE)
 {
 
 if (is.null(pgain_types) || !is.character(pgain_types) || !all(pgain_types %in% names(pgain_quantile)))
@@ -461,9 +469,16 @@ p_base_rec + geom_point(data=data.frame(number_tests_red_rec[[i]], quantile_red_
 })
 }
 
+
+if (print_pdf==TRUE){
 pdf("Plot_rec_pgain_quantile_log-linear_fit.pdf")
 print(p_base_rec+scale_colour_manual(name="AF", values = col))
 dev.off()
+}else{
+print(p_base_rec+scale_colour_manual(name="AF", values = col))
+}
+
+
 
 }
 
@@ -519,10 +534,13 @@ p_base_dom + geom_point(data=data.frame(number_tests_red_dom[[i]], quantile_red_
 })
 }
 
+if (print_pdf==TRUE){
 pdf("Plot_dom_pgain_quantile_log-linear_fit.pdf")
 print(p_base_dom+scale_colour_manual(name="AF", values = col))
 dev.off()
-
+}else{
+print(p_base_dom+scale_colour_manual(name="AF", values = col))
+}
 
 
 
@@ -598,10 +616,14 @@ p_base_add + geom_point(data=data.frame(number_tests_red_add[[i]], quantile_red_
 })
 }
 }
+
+if (print_pdf==TRUE){
 pdf("Plot_add_pgain_quantile_log-linear_fit.pdf")
 print(p_base_add+scale_colour_manual(name="AF", values = col))
 dev.off()
-
+}else{
+print(p_base_add+scale_colour_manual(name="AF", values = col))
+}
 
 
 
