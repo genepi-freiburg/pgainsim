@@ -44,7 +44,7 @@ using `pgain_types` (rec, dom, add), `AFs` (vector with different allele frequen
 
 ```{r simulation}
 require(pgainsim)
-sim_dat <- p_gain_simulation(pgain_types=c("add","rec"), AFs=c(0.3,0.7), n=10000L, cores=4L)
+sim_dat <- p_gain_simulation(pgain_types=c("add","rec"), AFs=c(0.3,0.5,0.7,0.9), n=10000L, cores=4L)
 ```
 
 Because the distribution of the additive p-gain is the same for the allele frequencies
@@ -53,7 +53,9 @@ are combined for the additive p-gain.
 
 Based on the simulated data, the empirical density of one p-gain type for different
 allele frequencies can be plotted by the function `p_gain_density_plot()` where
-`xlim` describes the range of the x-axis:
+`xlim` describes the range of the x-axis. Here we predefined the xlim range to zoom
+in on the relevant part of the density, which in turn leads to a warning as a number
+of data points is excluded from the plot.
 
 ```{r density_plot}
 p_gain_density_plot(pgain_type="rec", sim_data=sim_dat, xlim=c(0,5), print_pdf=FALSE)
