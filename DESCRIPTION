@@ -15,8 +15,8 @@ Authors@R: c(person("Pascal", "Schlosser", role = c("aut", "cre"),
 Depends:
   R (>= 3.6.3),parallel,minpack.lm,ggplot2,reshape2
 Suggests:
-  knitr
-VignetteBuilder: knitr
+  knitr, rmarkdown
+VignetteBuilder: knitr, rmarkdown
 URL: https://github.com/genepi-freiburg/pgainsim
 BugReports: https://github.com/genepi-freiburg/pgainsim/issues
 RoxygenNote: 7.1.1
