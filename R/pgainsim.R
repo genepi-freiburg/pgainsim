@@ -566,17 +566,22 @@ index_comb[i] <- which(AFs==as.character(1-AF))
 
 }
 
-fits_add <- vector("list",length=length(AFs))
-ylim_add <- vector("numeric",length=length(AFs))
-quantile_red_add <- vector("list",length=length(AFs))
-number_tests_red_add <- vector("list",length=length(AFs))
+AFs_new <- AFs[-index_comb]
+
+col_new <- col[-index_comb]
+
+fits_add <- vector("list",length=length(AFs_new))
+ylim_add <- vector("numeric",length=length(AFs_new))
+quantile_red_add <- vector("list",length=length(AFs_new))
+number_tests_red_add <- vector("list",length=length(AFs_new))
 
 
-for(i in 1:length(AFs)){
+for(i in 1:length(AFs_new)){
 
-if (!(i %in% index_comb)){
 
-AF <- AFs[i]
+
+AF <- as.character(AFs_new[i])
+j <- which(as.character(AFs)==AF)
 
 a <- nrow(pgain_quantile[[1]])/n_data_ff
 
@@ -584,7 +589,7 @@ a <- nrow(pgain_quantile[[1]])/n_data_ff
 index_add <- grep("add", names(pgain_quantile), fixed=TRUE)
 
 
-quantile_red_add[[i]] <- pgain_quantile[[index_add]][,i][seq(1,nrow(pgain_quantile[[index_add]]),a)]
+quantile_red_add[[i]] <- pgain_quantile[[index_add]][,j][seq(1,nrow(pgain_quantile[[index_add]]),a)]
 
 
 number_tests_red_add[[i]] <- number_tests[seq(1,nrow(pgain_quantile[[index_add]]),a)]
@@ -593,7 +598,7 @@ index2_add <- grep("add", pgain_types, fixed=TRUE)
 
 print(paste0("Fitted function for additive p-gain-quantiles of allele frequency ",AF))
 
-print(fits_add[[i]] <- minpack.lm::nlsLM(formula=pgain_quantile[[index_add]][,i]~log(a+b*number_tests,base=d),start=list(a=start_vec[[index2_add]][1,i],b=start_vec[[index2_add]][2,i],d=start_vec[[index2_add]][3,i]), control=nls.lm.control(maxiter = 1000,ptol=1e-9)))
+print(fits_add[[i]] <- minpack.lm::nlsLM(formula=pgain_quantile[[index_add]][,j]~log(a+b*number_tests,base=d),start=list(a=start_vec[[index2_add]][1,j],b=start_vec[[index2_add]][2,j],d=start_vec[[index2_add]][3,j]), control=nls.lm.control(maxiter = 1000,ptol=1e-9)))
 
 
 print_text_add <- paste0("additive p-gain-threshold for ",test_number," tests, allele frequency ",AF)
@@ -602,27 +607,27 @@ print(log(coef(fits_add[[i]])[1] + coef(fits_add[[i]])[2]*test_number,base=coef(
 
 ylim_add[i] <- log(coef(fits_add[[i]])[1] + coef(fits_add[[i]])[2]*test_number,base=coef(fits_add[[i]])[3])
 
-}
+
 
 }
 
 p_base_add <- ggplot2::ggplot(data.frame(x=c(0,test_number)), aes(x)) + ylim(0,max(ylim_add)) + theme_classic() +  xlab("Number of tests") + ylab("Additive p-gain-quantile")
 
-for(i in 1:length(AFs)){
-if (!(i %in% index_comb)){
+for(i in 1:length(AFs_new)){
+
 p_base_add <- local({
 i=i
-p_base_add + geom_point(data=data.frame(number_tests_red_add[[i]], quantile_red_add[[i]]), aes(number_tests_red_add[[i]], quantile_red_add[[i]], col=as.character(AFs[i])), size=1) + stat_function(fun=function(x)log(coef(fits_add[[i]])[1] + coef(fits_add[[i]])[2]*x,base=coef(fits_add[[i]])[3]), geom="line", col=col[i])
+p_base_add + geom_point(data=data.frame(number_tests_red_add[[i]], quantile_red_add[[i]]), aes(number_tests_red_add[[i]], quantile_red_add[[i]], col=as.character(AFs_new[i])), size=1) + stat_function(fun=function(x)log(coef(fits_add[[i]])[1] + coef(fits_add[[i]])[2]*x,base=coef(fits_add[[i]])[3]), geom="line", col=col_new[i])
 })
-}
+
 }
 
 if (print_pdf==TRUE){
 pdf("Plot_add_pgain_quantile_log-linear_fit.pdf")
-print(p_base_add+scale_colour_manual(name="AF", values = col))
+print(p_base_add+scale_colour_manual(name="AF", values = col_new))
 dev.off()
 }else{
-print(p_base_add+scale_colour_manual(name="AF", values = col))
+print(p_base_add+scale_colour_manual(name="AF", values = col_new))
 }
 
 
