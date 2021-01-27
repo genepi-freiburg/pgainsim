@@ -5,7 +5,7 @@ An R-package to assess the mode of inheritance for quantitative trait loci in GW
 ```
 if (!requireNamespace("devtools", quietly = TRUE))
     install.packages("devtools")
-devtools::install_github("genepi-freiburg/pgainsim")
+devtools::install_github("genepi-freiburg/pgainsim",build_vignettes = TRUE)
 ```
 
 # Example
