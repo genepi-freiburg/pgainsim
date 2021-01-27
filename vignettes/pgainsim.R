@@ -9,7 +9,7 @@ if (!requireNamespace("pgainsim", quietly = TRUE))
 
 ## ----simulation---------------------------------------------------------------
 require(pgainsim)
-sim_dat <- p_gain_simulation(pgain_types=c("add","rec"), AFs=c(0.3,0.5,0.7,0.9), n=10000L, cores=2L)
+sim_dat <- p_gain_simulation(pgain_types=c("add","rec"), AFs=c(0.3,0.5,0.7,0.9), n=10000L, cores=1L)
 
 ## ----density_plot-------------------------------------------------------------
 p_gain_density_plot(pgain_type="rec", sim_data=sim_dat, xlim=c(0,5), print_pdf=FALSE)

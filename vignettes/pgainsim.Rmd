@@ -44,7 +44,7 @@ using `pgain_types` (rec, dom, add), `AFs` (vector with different allele frequen
 
 ```{r simulation}
 require(pgainsim)
-sim_dat <- p_gain_simulation(pgain_types=c("add","rec"), AFs=c(0.3,0.5,0.7,0.9), n=10000L, cores=2L)
+sim_dat <- p_gain_simulation(pgain_types=c("add","rec"), AFs=c(0.3,0.5,0.7,0.9), n=10000L, cores=1L)
 ```
 
 Because the distribution of the additive p-gain is the same for the allele frequencies
