@@ -1,13 +1,13 @@
 Package: pgainsim
 Type: Package
 Title: Simulation for p-gains to detect add/dom/rec modes of inheritance (pgainsim)
-Version: 1.0.1
+Version: 1.1.0
 Maintainer: Pascal Schlosser <pascal.schlosser@uniklinik-freiburg.de>
 Description: An R-package to assess the mode of inheritance for quantitative trait loci in GWAS
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-Date: 2021-01-13
+Date: 2021-01-27
 Authors@R: c(person("Pascal", "Schlosser", role = c("aut", "cre"),
                     email = "pascal.schlosser@uniklinik-freiburg.de"),
              person("Nora", "Scherer", role = c("aut", "ctb"),
