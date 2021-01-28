@@ -13,9 +13,9 @@ Authors@R: c(person("Pascal", "Schlosser", role = c("aut", "cre"),
              person("Nora", "Scherer", role = c("aut", "ctb"),
                     email = "nora.isabella.scherer@uniklinik-freiburg.de"))
 Depends:
-  R (>= 3.6.3),parallel,minpack.lm,ggplot2,reshape2
+  R (>= 3.6.3),parallel,minpack.lm,ggplot2,reshape2,rmarkdown,Rtools
 Suggests:
-  knitr, rmarkdown
+  knitr
 VignetteBuilder: knitr, rmarkdown
 URL: https://github.com/genepi-freiburg/pgainsim
 BugReports: https://github.com/genepi-freiburg/pgainsim/issues
