@@ -15,8 +15,8 @@ Finally, the quantiles are exported or interpolated and the critical values are 
 ```
 if (!requireNamespace("devtools", quietly = TRUE))
     install.packages("devtools")
-if (!requireNamespace("Rtools", quietly = TRUE))
-    install.packages("Rtools")
+if (!requireNamespace("rmarkdown", quietly = TRUE))
+    install.packages("rmarkdown")
 devtools::install_github("genepi-freiburg/pgainsim",build_vignettes = TRUE)
 ```
 

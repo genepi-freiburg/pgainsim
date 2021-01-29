@@ -4,6 +4,8 @@ knitr::opts_chunk$set(error = TRUE)
 ## ----install_package----------------------------------------------------------
 if (!requireNamespace("devtools", quietly = TRUE))
    install.packages("devtools")
+if (!requireNamespace("rmarkdown", quietly = TRUE))
+   install.packages("rmarkdown")
 if (!requireNamespace("pgainsim", quietly = TRUE))
   devtools::install_github("genepi-freiburg/pgainsim",build_vignettes = TRUE)
 
