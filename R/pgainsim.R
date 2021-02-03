@@ -566,9 +566,18 @@ index_comb[i] <- which(AFs==as.character(1-AF))
 
 }
 
+if (sum(index_comb==0)==length(AFs)){
+
+AFs_new <- AFs
+col_new <- col
+
+}else{
+
 AFs_new <- AFs[-index_comb]
 
 col_new <- col[-index_comb]
+
+}
 
 fits_add <- vector("list",length=length(AFs_new))
 ylim_add <- vector("numeric",length=length(AFs_new))
