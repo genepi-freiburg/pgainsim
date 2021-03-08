@@ -42,6 +42,12 @@ stop("pgainsim: Error: sim_MOI must be a character of the type add, rec, dom or 
 if (sim_MOI=="none" & !effect_size==0)
 stop("pgainsim: Error: When no genetic effect should be simulated with sim_MOI=\"none\" (default), the effect size should be 0 (default)")
 
+if (sim_MOI %in% pgain_types & !effect_size==0){
+tex <- paste0("pgainsim: Error: It is not meaningful to simulate ",sim_MOI," p-gains under ",sim_MOI," associations. Hence the simulation of p-gains is stopped. Please adapt the argument pgain_types or sim_MOI.")
+stop(tex)
+}
+
+
 if (is.null(n) || !is.integer(n))
 stop("pgainsim: Error: n must be an integer.")
 
