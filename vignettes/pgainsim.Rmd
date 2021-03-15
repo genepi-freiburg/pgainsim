@@ -82,6 +82,34 @@ list_fits <- p_gain_quantile_fit(pgain_quantile=quantile, test_number=50L, print
 By means of `start_vec` the starting estimates for the log-linear-fit for different p-gain types
 and allele frequencies can be changed.
 
+In a GWAS setting the full estimation of critical values can be done as follows:
+A1) Run the GWAS with an additive, recessive and dominant coding and select index hits 
+with p<1.67e-8 (=0.05/ 3 models / 1 million independent tests).
+A2) Run pgainsim assuming no genetic association adjusting for the same 3 million tests and cover
+ the observed allele frequencies or span a grid of allele frequencies.
+
+B1) the same as A1) Run the GWAS with an additive, recessive and dominant coding and select index hits
+ with p<1.67e-8 (=0.05/ 3 models / 1 million independent tests).
+B2) Run pgainsim assuming the specific genetic effects you want to reject using the arguments `effect_size` (numeric value),
+`sim_MOI` (simulated genetic association: none, add, rec, dom) and `trait_variance` (trait variance within a genotype) in the function `p_gain_simulation()`.
+E.g. p-value_recessive is the lowest p-value, then choose `sim_MOI`="add" and take the effect estimate of the additive fit as `effect_size`
+and the average across genotypes of within genotype trait variance as `trait_variance` and simulate pgains under this model.
+The number of tests one should correct for reduces in this case to the number of significant index SNPs. 
+
+Scenario A is a simplification that potentially allows for a computationally much more efficient setup (if you have many hits).
+Scenario B is the stringently theoretically correct approach. In practise with a metabolome-wide GWAS (1400 traits) we found out
+that scenario A was for most allele frequencies more conservative than scenario B.
+
+Scenario A is outlined in above code. Scenario B is described below.
+
+```{r B}
+sim_dat <- p_gain_simulation(pgain_types="rec", AFs=c(0.3,0.5,0.8), effect_size=0.3, trait_variance=0.8, sim_MOI="add", n=10000L, cores=1L)
+p_gain_density_plot(pgain_type="rec", sim_data=sim_dat, xlim=c(0,0.5), adjust=50, print_pdf=FALSE)
+quantile <- p_gain_quantiles(n_tests=5L, sim_data=sim_dat)
+vec <- list(data.frame("0.3"=c(a=1,b=0.00001,d=1.001),"0.5"=c(a=1.1,b=0.000001,d=1.0000001), "0.8"=c(a=1,b=0.000001,d=1.00000001)))
+list_fits <- p_gain_quantile_fit(pgain_quantile=quantile, test_number=50L, start_vec=vec, print_pdf=FALSE)
+```
+
 For details on the options of all functions please see `?pgainsim` and the corresponding
 application note by Scherer et al. 2021 (under review).
 
