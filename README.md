@@ -1,6 +1,7 @@
 # pgainsim
 An R-package to assess the mode of inheritance for quantitative trait loci in GWAS.
 The corresponding publication has been published in Bioinformatics:
+
 Nora Scherer, Peggy Sekula, Peter Pfaffelhuber, Pascal Schlosser, pgainsim: an R-package to assess the mode of inheritance for quantitative trait loci in GWAS, Bioinformatics, Volume 37, Issue 18, 15 September 2021, Pages 3061–3063, https://doi.org/10.1093/bioinformatics/btab150
 
 # Introduction
